@@ -19,7 +19,7 @@ class PurchaseRequest(models.Model):
 
     def _default_stage_id(self):
         """ get default stage id """
-        return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], order='sequence', limit=1).id
+        return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], limit=1).id
 
     @api.depends('user_id')
     def _get_request_responsible(self):
