@@ -13,6 +13,12 @@
         <field name="sequence">2</field>
         <field name="is_statusbar_disabled">True</field>
     </record>
+    <record id="purchase_request_stage_done" model="purchase.request.stage">
+        <field name="name">Done</field>
+        <field name="technical_name">done</field>
+        <field name="sequence">3</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
     <record id="purchase_request_stage_cancelled" model="purchase.request.stage">
         <field name="name">Cancelled</field>
         <field name="technical_name">cancelled</field>

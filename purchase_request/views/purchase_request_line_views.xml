@@ -17,6 +17,7 @@
                 <field name="date_expected" optional="show"/>
                 <field name="date_reminder" invisible="1"/>
                 <field name="product_qty" optional="show"/>
+                <field name="product_available" optional="show"/>
                 <field name="product_uom" groups="uom.group_uom" optional="show"/>
                 <field name="price_unit" optional="show"/>
             </tree>

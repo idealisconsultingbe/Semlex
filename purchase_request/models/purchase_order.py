@@ -22,6 +22,8 @@ class PurchaseOrder(models.Model):
         lines = self.env['purchase.request.line'].browse(line_ids)
         self.env['purchase.order'].check_lines_compatibility(lines)
         product_lines = lines.filtered(lambda request_line: request_line.product_id and request_line.partner_id)
+
+        # TODO PURCHASE ORDER WITH DIFFERENT VENDORS
         if product_lines:
             origins = set(product_lines.mapped('purchase_request_id.ref'))
             order = self.env['purchase.order'].search([('state', '=', 'draft'),

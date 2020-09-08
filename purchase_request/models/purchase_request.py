@@ -31,9 +31,17 @@ class PurchaseRequest(models.Model):
             else:
                 request.request_responsible_id = False
 
+    def get_confirm_visible(self):
+        """
+        :param self:
+        :return:
+        """
+        self.confirm_visible = self.env.user == self.request_responsible_id
+
     ref = fields.Char(string='Reference', index=True, default='New')
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
                               default=lambda self: self.env.user, required=True, check_company=True)
+    confirm_visible = fields.Boolean(compute='get_confirm_visible')
     request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
                                              required=True, compute="_get_request_responsible")
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', ondelete='set null',

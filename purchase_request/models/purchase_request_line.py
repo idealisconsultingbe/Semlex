@@ -44,6 +44,7 @@ class PurchaseRequestLine(models.Model):
     display_type = fields.Selection([
         ('line_section', 'Section'),
         ('line_note', 'Note')], default=False, help='Technical field for UX purpose.')
+    product_available = fields.Float(related='product_id.free_qty')
 
     @api.depends('product_uom', 'product_qty', 'product_id.uom_id')
     def _compute_product_uom_qty(self):
@@ -77,6 +78,11 @@ class PurchaseRequestLine(models.Model):
         """ Compute expected date minus one week """
         for line in self:
             line.date_reminder = (line.date_expected - timedelta(days=7)) if line.date_expected else False
+
+    # @api.onchange('order_id')
+    # def _onchange_order_id(self):
+    #     for line in self :
+
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
