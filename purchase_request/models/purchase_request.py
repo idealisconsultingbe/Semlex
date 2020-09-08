@@ -25,10 +25,11 @@ class PurchaseRequest(models.Model):
     def _get_request_responsible(self):
         """ get request responsible id """
         for request in self:
-            responsible_id = False
             employee_id = request.env['hr.employee'].search([('user_id', '=', request.user_id.id)], limit=1)
             if employee_id:
-                request.responsible_id = employee_id.parent_id.id
+                request.responsible_id = employee_id.parent_id
+            else:
+                request.responsible_id = False
 
     ref = fields.Char(string='Reference', index=True, default='New')
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
