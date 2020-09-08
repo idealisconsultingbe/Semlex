@@ -11,7 +11,6 @@
                 <field name="stage_id"/>
                 <field name="color"/>
                 <field name="user_id"/>
-                <field name="request_responsible_id"/>
                 <field name="line_count"/>
                 <field name="remaining_days"/>
                 <field name="readonly_stage" invisible="1"/>
@@ -86,6 +85,7 @@
                 <field name="ref"/>
                 <field name="user_id" string="Representative"/>
                 <field name="owner_id" optional="hide" string="Owner"/>
+                <field name="request_responsible_id"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="date_request" optional="show"/>
                 <field name="date_confirm" optional="hide"/>
@@ -130,6 +130,7 @@
                     <group>
                         <group>
                             <field name="user_id" readonly="1" string="Representative"/>
+                            <field name="request_responsible_id"/>
                             <field name="owner_id" widget="res_partner_many2one" string="Owner" attrs="{'readonly': [('readonly_stage', '=', True)], 'invisible': [('technical_stage_name', 'in', ['draft', 'cancelled'])]}"/>
                             <field name="currency_id" groups="base.group_multi_currency" attrs="{'readonly': [('readonly_stage', '=', True)]}" force_save="1"/>
                             <field name="company_id" groups="base.group_multi_company" attrs="{'readonly': [('readonly_stage', '=', True)]}" options="{'no_create': True}"/>
