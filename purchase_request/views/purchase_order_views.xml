@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form Views -->
+    <record id="purchase_order_form" model="ir.ui.view">
+            <field name="name">purchase.order.form.inherited.request.line</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="before">
+                    <field name="request_line_ids" invisible="1"/>
+                </xpath>
+            </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="purchase_order_action_create_order" model="ir.actions.server">
+        <field name="name">Create Purchase Order</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_model_id" ref="purchase_request.model_purchase_request_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            env['purchase.order'].action_create_purchase_order(env.context.get('active_ids'))
+        </field>
+    </record>
+
+
+</odoo>

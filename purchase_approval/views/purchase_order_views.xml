@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="purchase_order_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherited.purchase.approval</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="statusbar_visible">draft,sent,step_approval,purchase</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_approve']" position="after">
+                <field name="one_step_approval_button_visible" invisible="1"/>
+                <field name="multi_step_approval_button_visible" invisible="1"/>
+                <button name="one_step_approve" type="object" string="Approve Order" class="oe_highlight" attrs="{'invisible': ['|', ('one_step_approval_button_visible', '=', False), ('state', '!=', 'step_approval')]}"/>
+                <button name="multi_step_approve" type="object" string="Approve Order" class="oe_highlight" attrs="{'invisible': ['|', ('multi_step_approval_button_visible', '=', False), ('state', '!=', 'step_approval')]}"/>
+                <button name="approve_cancel" string="Reject Order" type="object" attrs="{'invisible': ['&amp;', ('one_step_approval_button_visible', '=', False), ('multi_step_approval_button_visible', '=', False), '|', ('state', '!=', 'step_approval')]}"/>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']" position="before">
+                <page string="Approval Information" name="purchase_approval_page" attrs="{'invisible': [('state', '!=', 'step_approval')]}">
+                    <group>
+                        <field name="purchase_approval_ids" readonly="1" mode="tree" nolabel="1">
+                            <tree string="Purchase Order Approval Rules">
+                                <field name="approval_rule_id"/>
+                                <field name="responsible_ids" widget='many2many_tags'/>
+                                <field name="approval_status"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_action" model="ir.actions.act_window">
+        <field name="name">Open Order</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>

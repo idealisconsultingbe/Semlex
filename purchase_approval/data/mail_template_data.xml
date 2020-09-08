@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data noupdate="1">
+        <record id="purchase_approval_request_mail_template" model="mail.template">
+            <field name="name">Approval request</field>
+            <field name="model_id" ref="model_purchase_approval"/>
+            <field name="subject">Approval required</field>
+            <field name="email_to">${ctx.get('email_to', '')}</field>
+            <field name="body_html" type="html">
+                 <div>
+                     <p>Dear ${ctx.get('employee_name', 'colleague')},</p>
+                     <br/>
+                     <p>Your approval is required for following purchase order: ${object.purchase_order_id.name}</p>
+                     <br/>
+                 </div>
+                <div style="display: inline-block; margin: 15px; text-align: center">
+                    <a href="/web?#id=${ctx.get('po_id')}&amp;action=${ctx.get('action_id')}&amp;model=purchase.order&amp;menu_id=${ctx.get('menu_id')}&amp;db=${'dbname' in ctx and ctx['dbname'] or '' }"
+                       target="_blank"
+                       style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px"
+                    >View Order
+                    </a>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

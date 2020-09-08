@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="purchase_request_stage_draft" model="purchase.request.stage">
+        <field name="name">Draft</field>
+        <field name="technical_name">draft</field>
+        <field name="sequence">1</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
+    <record id="purchase_request_stage_confirmed" model="purchase.request.stage">
+        <field name="name">Confirmed</field>
+        <field name="technical_name">confirmed</field>
+        <field name="sequence">2</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
+    <record id="purchase_request_stage_cancelled" model="purchase.request.stage">
+        <field name="name">Cancelled</field>
+        <field name="technical_name">cancelled</field>
+        <field name="sequence">100</field>
+        <field name="fold">True</field>
+        <field name="is_readonly">True</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
+
+</odoo>
