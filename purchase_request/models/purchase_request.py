@@ -26,7 +26,7 @@ class PurchaseRequest(models.Model):
         """ get request responsible id """
         for request in self:
             employee_id = request.env['hr.employee'].search([('user_id', '=', request.user_id.id)], limit=1)
-            if employee_id:
+            if employee_id.parent_id:
                 request.responsible_id = employee_id.parent_id
             else:
                 request.responsible_id = False
