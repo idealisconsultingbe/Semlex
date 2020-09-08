@@ -11,6 +11,7 @@
                 <field name="stage_id"/>
                 <field name="color"/>
                 <field name="user_id"/>
+                <field name="request_responsible_id"/>
                 <field name="line_count"/>
                 <field name="remaining_days"/>
                 <field name="readonly_stage" invisible="1"/>

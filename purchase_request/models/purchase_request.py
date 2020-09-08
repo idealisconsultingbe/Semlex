@@ -21,9 +21,20 @@ class PurchaseRequest(models.Model):
         """ get default stage id """
         return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], order='sequence', limit=1).id
 
+    @api.depends('user_id')
+    def _get_request_responsible(self):
+        """ get request responsible id """
+        responsible_id = False
+        employee_id = self.env['hr.employee'].search([('user_id', '=', self.user_id)], order='sequence', limit=1)
+        if employee_id:
+            responsible_id = employee_id.parent_id
+        return responsible_id
+
     ref = fields.Char(string='Reference', index=True, default='New')
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
                               default=lambda self: self.env.user, required=True, check_company=True)
+    request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
+                                             required=True, compute="_get_request_responsible")
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', ondelete='set null',
                                           domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
                                           check_company=True,
