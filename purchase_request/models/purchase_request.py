@@ -25,7 +25,7 @@ class PurchaseRequest(models.Model):
     def _get_request_responsible(self):
         """ get request responsible id """
         responsible_id = False
-        employee_id = self.env['hr.employee'].search([('user_id', '=', self.user_id)], order='sequence', limit=1)
+        employee_id = self.env['hr.employee'].search([('user_id', '=', self.user_id.id)], order='sequence', limit=1)
         if employee_id:
             responsible_id = employee_id.parent_id
         return responsible_id
