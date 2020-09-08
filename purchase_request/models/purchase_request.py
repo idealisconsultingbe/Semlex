@@ -24,11 +24,11 @@ class PurchaseRequest(models.Model):
     @api.depends('user_id')
     def _get_request_responsible(self):
         """ get request responsible id """
-        responsible_id = False
-        employee_id = self.env['hr.employee'].search([('user_id', '=', self.user_id.id)], limit=1)
-        if employee_id:
-            responsible_id = employee_id.parent_id
-        return responsible_id
+        for request in self:
+            responsible_id = False
+            employee_id = request.env['hr.employee'].search([('user_id', '=', request.user_id.id)], limit=1)
+            if employee_id:
+                request.responsible_id = employee_id.parent_id.id
 
     ref = fields.Char(string='Reference', index=True, default='New')
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
