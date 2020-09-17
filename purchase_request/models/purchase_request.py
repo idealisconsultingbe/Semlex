@@ -202,9 +202,10 @@ class PurchaseRequest(models.Model):
             # Create consumption stock picking
             res = self.env['stock.picking'].action_create_stock_picking(request)
             if res: request.picking_id = res.id
+            request.stage_id = self.env.ref('purchase_request.purchase_request_stage_validate').id
             # Create purchase order for non available quantity
             request.button_convert()
-            request.stage_id = self.env.ref('purchase_request.purchase_request_stage_validate').id
+
 
     def button_draft(self):
         """ Change stage to draft """
