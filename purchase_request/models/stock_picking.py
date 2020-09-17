@@ -33,7 +33,7 @@ class PurchaseOrder(models.Model):
                     'product_uom_qty': line.product_qty,
                     'product_uom': line.product_id.uom_id.id,
                     'picking_id': picking_id.id,
-                    'delivery_date': line.date_expected,
+                    # 'delivery_date': line.date_expected,
                     'location_id': picking_id.location_id.id,
                     'location_dest_id': picking_id.location_dest_id.id})
             picking_id.action_assign()
