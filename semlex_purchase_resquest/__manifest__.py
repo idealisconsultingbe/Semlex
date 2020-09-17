@@ -9,7 +9,7 @@
     'website': 'http://www.idealisconsulting.com',
     'depends': ['base','purchase_request'],
     'data': [
-        # 'security/project_security.xml',
+        'view/purchase_request_views.xml',
     ],
     'images': [],
     'license': 'LGPL-3',

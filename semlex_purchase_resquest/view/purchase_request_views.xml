@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree Views -->
+    <record id="semlex_purchase_request_view_tree" model="ir.ui.view">
+        <field name="name">semlex.purchase.request.view.tree</field>
+        <field name="model">purchase.request</field>
+        <field name="inherit_id" ref="purchase_request.purchase_request_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='owner_id']" position="after">
+                <field name="request_responsible_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Form Views -->
+    <record id="semlex_purchase_request_view_form" model="ir.ui.view">
+        <field name="name">semlex.purchase.request.view.form</field>
+        <field name="model">purchase.request</field>
+        <field name="inherit_id" ref="purchase_request.purchase_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="request_responsible_id"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
