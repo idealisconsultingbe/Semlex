@@ -63,8 +63,8 @@ class PurchaseOrder(models.Model):
     def check_lines_compatibility(self, lines):
         if not lines:
             raise UserError(_('You cannot create a purchase order: at least one purchase request line is required.'))
-        if any(line.technical_stage_name in ('cancelled', 'draft') for line in lines):
-            raise UserError(_('You cannot create a purchase order: at least one purchase request line is in Draft or Cancelled stage.'))
+        if any(line.technical_stage_name in ('cancelled', 'draft','confirmed') for line in lines):
+            raise UserError(_('You cannot create a purchase order: at least one purchase request line is in Draft, Confirm or Cancelled stage.'))
         if any(line.order_id for line in lines):
             raise UserError(_('You cannot create a purchase order: there is already an order for at least one purchase request line.'))
         if len(lines.mapped('partner_id')) > 1:
