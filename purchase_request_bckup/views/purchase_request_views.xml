@@ -8,7 +8,8 @@
         <field name="arch" type="xml">
             <kanban default_group_by="stage_id" class="o_kanban_small_column o_opportunity_kanban" on_create="quick_create" quick_create_view="purchase_request.purchase_request_view_quick_create_form"
                 archivable="false">
-                <field name="stage_id" readonly="1"/>
+                <field name="confirm_visible" invisible="1"/>
+                <field name="stage_id" attrs="{'readonly': [('confirm_visible','!=',True)]}"/>
                 <field name="color"/>
                 <field name="user_id"/>
                 <field name="line_count"/>
@@ -85,6 +86,7 @@
                 <field name="ref"/>
                 <field name="user_id" string="Representative"/>
                 <field name="owner_id" optional="hide" string="Owner"/>
+                <field name="request_responsible_id"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="date_request" optional="show"/>
                 <field name="date_confirm" optional="hide"/>
@@ -108,31 +110,19 @@
         <field name="arch" type="xml">
             <form string="Purchase Request" class="o_purchase_order">
                 <header>
+                    <field name="confirm_visible" invisible="1"/>
                     <field name="technical_stage_name" invisible="1"/>
                     <field name="readonly_stage" invisible="1"/>
-                    <field name="picking_id" invisible="1"/>
-                    <field name="order_count" invisible="1"/>
                     <field name="disabled_statusbar" invisible="1"/>
                     <field name="button_convert_visibility" invisible="1"/>
                     <button name="button_convert" groups="purchase.group_purchase_user,purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|', ('technical_stage_name', 'in', ['draft', 'cancelled']), ('button_convert_visibility', '=', False)]}" string="Create Purchase Order" type="object" class="oe_highlight"/>
-                    <button name="button_valid" groups="purchase.group_purchase_user,purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|', ('technical_stage_name', 'in', ['draft', 'cancelled']), ('button_convert_visibility', '=', False)]}" string="Validate" type="object" class="oe_highlight"/>
                     <button name="button_assign" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '!=', 'confirmed')]}" string="Assign to Me" type="object" />
-                    <button name="button_confirm" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner,purchase_request.purchase_request_group_creator" type="object" attrs="{'invisible': [('technical_stage_name', '!=', 'draft')]}" string="Confirm Request" class="oe_highlight"/>
+                    <button name="button_confirm" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner,purchase_request.purchase_request_group_creator" type="object" attrs="{'invisible': ['|',('technical_stage_name', '!=', 'draft'),('confirm_visible','!=',True)]}" string="Confirm Request" class="oe_highlight"/>
                     <button name="button_draft" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '=', 'draft')]}" string="Set to Draft" type="object" />
                     <button name="button_cancel" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '=', 'cancelled')]}" string="Cancel" type="object" />
-                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" readonly="1"/>
-<!--                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" attrs="{'readonly': [('disabled_statusbar', '=', True)]}"/>-->
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" attrs="{'readonly': [('disabled_statusbar', '=', True),('confirm_visible','!=',True)]}"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button icon="fa-shopping-cart" type="object" name="go_to_purchase_order" class="oe_stat_button" attrs="{'invisible': [('order_count', '=', 0)]}">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_value"><field name="order_count"/></span>
-                                <span class="o_stat_text">Purchase</span>
-                            </div>
-                        </button>
-                        <button string="Picking" icon="fa-truck" type="object" name="go_to_picking" class="oe_stat_button" attrs="{'invisible': [('picking_id', '=', False)]}"/>
-                    </div>
                     <div class="oe_title">
                         <span class="o_form_label">Request for Purchase </span>
                         <h1>
@@ -141,8 +131,8 @@
                     </div>
                     <group>
                         <group>
-                            <field name="request_type_id"/>
                             <field name="user_id" readonly="1" string="Representative"/>
+                            <field name="request_responsible_id"/>
                             <field name="owner_id" widget="res_partner_many2one" string="Owner" attrs="{'readonly': [('readonly_stage', '=', True)], 'invisible': [('technical_stage_name', 'in', ['draft', 'cancelled'])]}"/>
                             <field name="currency_id" groups="base.group_multi_currency" attrs="{'readonly': [('readonly_stage', '=', True)]}" force_save="1"/>
                             <field name="company_id" groups="base.group_multi_company" attrs="{'readonly': [('readonly_stage', '=', True)]}" options="{'no_create': True}"/>
@@ -185,7 +175,6 @@
                                         force_save="1" optional="show"/>
                                     <field name="price_unit" optional="hide"/>
                                     <field name="product_available" optional="show"/>
-                                    <field name="product_qty_to_order" optional="show"/>
                                     <field name="order_id" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_state" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_reception_date" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
@@ -334,14 +323,6 @@
             parent="purchase_request_menu_config"
             action="purchase_request_tag_action"
             sequence="25"
-            groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager"/>
-
-    <menuitem
-            id="purchase_request_menu_type_config"
-            name="Request Type"
-            parent="purchase_request_menu_config"
-            action="purchase_request_type_action"
-            sequence="26"
             groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager"/>
 
 </odoo>

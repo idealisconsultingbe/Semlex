@@ -45,20 +45,6 @@ class PurchaseRequestLine(models.Model):
         ('line_section', 'Section'),
         ('line_note', 'Note')], default=False, help='Technical field for UX purpose.')
     product_available = fields.Float(related='product_id.free_qty')
-    product_qty_to_order = fields.Float(string="Qty to order", compute='_compute_qty_to_order')
-
-    def _compute_qty_to_order(self):
-        for line in self :
-            # type po = order all quantity
-            if line.purchase_request_id.request_type_id.operation_type == 'po':
-                line.product_qty_to_order = line.product_qty
-            # type po_stock = order only not available quantity
-            elif line.purchase_request_id.request_type_id.operation_type == 'po_stock':
-                line.product_qty_to_order = max(line.product_qty - line.product_available,0)
-
-            # type so or line already purchase = order nothing
-            if line.order_id or line.purchase_request_id.request_type_id.operation_type == 'so':
-                line.product_qty_to_order = 0
 
     @api.depends('product_uom', 'product_qty', 'product_id.uom_id')
     def _compute_product_uom_qty(self):
@@ -92,6 +78,11 @@ class PurchaseRequestLine(models.Model):
         """ Compute expected date minus one week """
         for line in self:
             line.date_reminder = (line.date_expected - timedelta(days=7)) if line.date_expected else False
+
+    # @api.onchange('order_id')
+    # def _onchange_order_id(self):
+    #     for line in self :
+
 
     @api.onchange('product_id')
     def _onchange_product_id(self):

@@ -25,4 +25,16 @@
         </field>
     </record>
 
+    <!-- Actions -->
+    <record id="purchase_order_action_take_stock" model="ir.actions.server">
+        <field name="name">Take to stock</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_model_id" ref="purchase_request.model_purchase_request_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            env['purchase.order'].action_create_stock_move(env.context.get('active_ids'))
+        </field>
+    </record>
+
 </odoo>

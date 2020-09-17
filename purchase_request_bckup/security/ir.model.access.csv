@@ -23,4 +23,4 @@ purchase_user_access_purchase_request,purchase user access,model_purchase_reques
 purchase_user_access_purchase_request_stage,purchase user access,model_purchase_request_stage,purchase.group_purchase_user,1,0,0,0
 purchase_user_access_purchase_request_tag,purchase user access,model_purchase_request_tag,purchase.group_purchase_user,1,0,0,0
 purchase_user_access_purchase_request_line,purchase user access,model_purchase_request_line,purchase.group_purchase_user,1,1,0,0
-purchase_manager_access_purchase_request_type,purchase manager access,model_purchase_request_type,purchase.group_purchase_manager,1,1,1,1
+

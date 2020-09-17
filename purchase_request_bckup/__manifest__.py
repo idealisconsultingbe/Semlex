@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Purchase Request",
-    'summary': "Manage Purchase Order Requests",
+    'name': "Purchase Request Backup",
+    'summary': "Manage Purchase Order Requests Backup",
     'description': """
         This module allows users to make requests for products. Those requests may generate a purchase order. 
     """,
@@ -19,7 +19,6 @@
         'views/purchase_order_views.xml',
         'views/purchase_request_line_views.xml',
         'views/purchase_request_tag_views.xml',
-        'views/purchase_request_type_views.xml',
         'views/purchase_request_views.xml',
     ],
     'installable': True,

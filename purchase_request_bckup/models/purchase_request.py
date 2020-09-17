@@ -9,24 +9,6 @@ AVAILABLE_PRIORITIES = [
     ('3', 'Very High'),
 ]
 
-AVAILABLE_OPERATIONS = [
-    ('po_stock', 'Consumption'),
-    ('po', 'Stock supply'),
-    ('so', 'Project'),
-]
-
-
-class PurchaseRequestType(models.Model):
-    _name = 'purchase.request.type'
-
-    name = fields.Char(string='Name', index=True, copy=False)
-    operation_type = fields.Selection(AVAILABLE_OPERATIONS, string='Operations Type',
-                                     default='po_stock',
-                                     help='- Consumption : create a stock move for available quantity and a purchase order for other\n'
-                                          '- Stock supply : create a purchase order for all quantity\n'
-                                          '- Project : create a sale order for all quantity')
-    stock_picking_type_id = fields.Many2one('stock.picking.type', 'Stock picking type', copy=False)
-
 
 class PurchaseRequest(models.Model):
     _name = 'purchase.request'
@@ -39,10 +21,29 @@ class PurchaseRequest(models.Model):
         """ get default stage id """
         return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], order='sequence', limit=1).id
 
-    ref = fields.Char(string='Reference', index=True, default='New',copy=False)
-    request_type_id = fields.Many2one('purchase.request.type', 'Request type',required=True,copy=False)
+    @api.depends('user_id')
+    def _get_request_responsible(self):
+        """ get request responsible id """
+        for request in self:
+            employee_id = request.env['hr.employee'].search([('user_id', '=', request.user_id.id)], limit=1)
+            if employee_id.parent_id:
+                request.request_responsible_id = employee_id.parent_id.user_id
+            else:
+                request.request_responsible_id = False
+
+    def get_confirm_visible(self):
+        """
+        :param self:
+        :return:
+        """
+        self.confirm_visible = self.env.user == self.request_responsible_id
+
+    ref = fields.Char(string='Reference', index=True, default='New')
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
                               default=lambda self: self.env.user, required=True, check_company=True)
+    confirm_visible = fields.Boolean(compute='get_confirm_visible')
+    request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
+                                             required=True, compute="_get_request_responsible")
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', ondelete='set null',
                                           domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
                                           check_company=True,
@@ -51,7 +52,7 @@ class PurchaseRequest(models.Model):
     priority = fields.Selection(AVAILABLE_PRIORITIES, string='Priority', default=AVAILABLE_PRIORITIES[0][0], tracking=True)
     tag_ids = fields.Many2many('purchase.request.tag', 'purchase_request_tag_rel', 'purchase_request_id', 'tag_id', string='Tags')
     stage_id = fields.Many2one('purchase.request.stage', string='Stage', ondelete='restrict', tracking=True,
-                               group_expand='_read_group_stage_ids', default=lambda self: self._default_stage_id(), copy=False)
+                               group_expand='_read_group_stage_ids', default=lambda self: self._default_stage_id())
     technical_stage_name = fields.Char(related='stage_id.technical_name', string='Technical Stage Name', store=True, help='Utility field used in UI.')
     readonly_stage = fields.Boolean(string='Is Fields Edition Forbidden', related='stage_id.is_readonly', help='Utility field used to prevent field edition if request stage is readonly.')
     disabled_statusbar = fields.Boolean(string='Is StatusBar Disabled', related='stage_id.is_statusbar_disabled', help='Utility field used to prevent statusbar usage.')
@@ -65,13 +66,6 @@ class PurchaseRequest(models.Model):
     remaining_days = fields.Integer(compute='_compute_remaining_days', string="Remaining Days", store=True, help='Remaining days before deadline.')
     color = fields.Integer(string='Color Index', default=0)
     button_convert_visibility = fields.Boolean(string='Convert To Purchase Order Button Visibility', compute='_compute_button_convert_visibility', help='Utility field used to handle convert to purchase button visibility.')
-    picking_id = fields.Many2one('stock.picking', string='Stock Picking', tracking=True, index=True, readonly=True, copy=False)
-    order_count = fields.Integer(string='Number of Purchase Order', compute='_get_purchase_order', readonly=True)
-
-    def _get_purchase_order(self):
-        """ Compute number of purchase order in a purchase request """
-        for request in self :
-            request.order_count = len(request.request_line_ids.mapped('order_id'))
 
     @api.depends('request_line_ids')
     def _compute_line_count(self):
@@ -190,21 +184,8 @@ class PurchaseRequest(models.Model):
     def button_convert(self):
         """ Convert a purchase request into a purchase order """
         for request in self:
-            vendor_ids = request.request_line_ids.mapped('partner_id')
-            for vendor in vendor_ids:
-                res = self.env['purchase.order'].action_create_purchase_order(request.request_line_ids.filtered(lambda l: l.partner_id == vendor).mapped('id'))
-                if res:
-                    request._message_order_created(res)
-
-    def button_valid(self):
-        """ Create a delivery picking for consumption an create purchase order for non available quantity"""
-        for request in self:
-            # Create consumption stock picking
-            res = self.env['stock.picking'].action_create_stock_picking(request)
-            if res: request.picking_id = res.id
-            # Create purchase order for non available quantity
-            request.button_convert()
-            request.stage_id = self.env.ref('purchase_request.purchase_request_stage_validate').id
+            res = self.env['purchase.order'].action_create_purchase_order(request.request_line_ids.mapped('id'))
+            request._message_order_created(res)
 
     def button_draft(self):
         """ Change stage to draft """
@@ -221,23 +202,3 @@ class PurchaseRequest(models.Model):
         """ Change stage to cancelled """
         for request in self:
             request.stage_id = self.env.ref('purchase_request.purchase_request_stage_cancelled').id
-
-    def go_to_picking(self):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Stock Transfert'),
-            'res_model': 'stock.picking',
-            'view_mode': 'form,tree',
-            'res_id': self.picking_id.id
-        }
-
-    def go_to_purchase_order(self):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Purchase Order'),
-            'res_model': 'purchase.order',
-            'view_mode': 'tree,form',
-            'domain': [('id', 'in', self.request_line_ids.mapped('order_id').ids)],
-        }

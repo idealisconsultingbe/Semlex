@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Groups -->
+        <record id="purchase_request_group_creator" model="res.groups">
+            <field name="category_id" ref="base.module_category_operations_purchase"/>
+            <field name="name">PR Creator</field>
+        </record>
+
+        <record id="purchase_request_group_owner" model="res.groups">
+            <field name="category_id" ref="base.module_category_operations_purchase"/>
+            <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+            <field name="name">PR Owner</field>
+        </record>
+
+        <record id="purchase_request_group_manager" model="res.groups">
+            <field name="category_id" ref="base.module_category_operations_purchase"/>
+            <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+            <field name="name">PR Manager</field>
+        </record>
+
+        <!-- IR Rules -->
+        <record id="purchase_request_rule_creator" model="ir.rule">
+            <field name="name">Creators can only create, delete or modify draft requests</field>
+            <field name="model_id" ref="purchase_request.model_purchase_request"/>
+            <field name="groups" eval="[(4, ref('purchase_request_group_creator'))]"/>
+            <field name="perm_read" eval="0"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">[('technical_stage_name','=','draft')]</field>
+        </record>
+
+        <record id="purchase_request_line_rule_creator" model="ir.rule">
+            <field name="name">Creators can only modify, create and delete draft request lines</field>
+            <field name="model_id" ref="purchase_request.model_purchase_request_line"/>
+            <field name="groups" eval="[(4, ref('purchase_request_group_creator'))]"/>
+            <field name="perm_read" eval="0"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">[('technical_stage_name','=','draft')]</field>
+        </record>
+
+        <record id="purchase_request_rule_owner" model="ir.rule">
+            <field name="name">Owners and purchase representatives can read and modify all requests</field>
+            <field name="model_id" ref="purchase_request.model_purchase_request"/>
+            <field name="groups" eval="[(4, ref('purchase_request_group_owner')), (4, ref('purchase.group_purchase_user'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_unlink" eval="0"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+        </record>
+
+        <record id="purchase_request_line_rule_owner" model="ir.rule">
+            <field name="name">Owners and purchase representatives can read, modify and delete request lines</field>
+            <field name="model_id" ref="purchase_request.model_purchase_request_line"/>
+            <field name="groups" eval="[(4, ref('purchase_request_group_owner')), (4, ref('purchase.group_purchase_user'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+        </record>
+
+        <record id="purchase_request_rule_manager" model="ir.rule">
+            <field name="model_id" ref="purchase_request.model_purchase_request"/>
+            <field name="groups" eval="[(4, ref('purchase_request_group_manager')), (4, ref('purchase.group_purchase_manager'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+        </record>
+
+        <record id="purchase_request_line_rule_manager" model="ir.rule">
+            <field name="model_id" ref="purchase_request.model_purchase_request_line"/>
+            <field name="groups" eval="[(4, ref('purchase_request_group_manager')), (4, ref('purchase.group_purchase_manager'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+        </record>
+
+        <record id="purchase_request_rule_company" model="ir.rule">
+            <field name="name">Users can only interact with their company requests</field>
+            <field name="model_id" ref="purchase_request.model_purchase_request"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="purchase_request_line_rule_company" model="ir.rule">
+            <field name="name">Users can only interact with their company request lines</field>
+            <field name="model_id" ref="purchase_request.model_purchase_request_line"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+    </data>
+</odoo>
