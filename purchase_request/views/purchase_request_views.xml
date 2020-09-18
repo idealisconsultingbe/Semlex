@@ -152,7 +152,7 @@
                             <field name="priority" widget="priority" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
                         </group>
                         <group>
-                            <field name="analytic_account_id" options="{'no_create_edit': True}" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
+                            <field name="analytic_account_id" options="{'no_create_edit': True}"  attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
                             <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}" placeholder="Request Tags..." attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
                             <field name="date_request" string="Created On" readonly="1"/>
                             <field name="date_confirm" string="Confirmed On" readonly="1" attrs="{'invisible': [('technical_stage_name', '=', 'draft')]}"/>
