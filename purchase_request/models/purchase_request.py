@@ -68,6 +68,26 @@ class PurchaseRequest(models.Model):
     button_convert_visibility = fields.Boolean(string='Convert To Purchase Order Button Visibility', compute='_compute_button_convert_visibility', help='Utility field used to handle convert to purchase button visibility.')
     picking_id = fields.Many2one('stock.picking', string='Stock Picking', tracking=True, index=True, readonly=True, copy=False)
     order_count = fields.Integer(string='Number of Purchase Order', compute='_get_purchase_order', readonly=True)
+    request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
+                                             required=True, compute="_get_request_responsible")
+    approve_visible = fields.Boolean(compute='get_approve_visible')
+
+    @api.depends('user_id')
+    def _get_request_responsible(self):
+        """ get request responsible id """
+        for request in self:
+            employee_id = request.env['hr.employee'].search([('user_id', '=', request.user_id.id)], limit=1)
+            if employee_id.parent_id:
+                request.request_responsible_id = employee_id.parent_id.user_id
+            else:
+                request.request_responsible_id = False
+
+    def get_approve_visible(self):
+        """
+        :param self:
+        :return:
+        """
+        self.approve_visible = self.env.user == self.request_responsible_id
 
     def _get_purchase_order(self):
         """ Compute number of purchase order in a purchase request """
@@ -150,7 +170,7 @@ class PurchaseRequest(models.Model):
             stage = self.env['purchase.request.stage'].browse(vals.get('stage_id'))
             if stage.technical_name != 'confirmed':
                 allowed_groups = self.env['res.groups'].search([('category_id', '=', self.env.ref('base.module_category_operations_purchase').id)])
-                allowed_groups = allowed_groups - self.env.ref('purchase_request.purchase_request_group_creator')
+                allowed_groups = allowed_groups - self.env.ref('purchase_request.purchase_request_group_user')
                 check_groups = any(group_id in allowed_groups for group_id in self.env.user.groups_id)
                 if not check_groups:
                     raise UserError(_('You cannot move this request to {} stage (creators are only allowed to confirm draft requests.').format(stage.name))
@@ -207,6 +227,10 @@ class PurchaseRequest(models.Model):
             # Create purchase order for non available quantity
             request.button_convert()
 
+    def button_approved(self):
+        """ Request Manager approval """
+        for request in self:
+            request.stage_id = self.env.ref('purchase_request.purchase_request_stage_approved').id
 
     def button_draft(self):
         """ Change stage to draft """

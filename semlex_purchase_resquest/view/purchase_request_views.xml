@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Tree Views -->
-    <record id="semlex_purchase_request_view_tree" model="ir.ui.view">
-        <field name="name">semlex.purchase.request.view.tree</field>
-        <field name="model">purchase.request</field>
-        <field name="inherit_id" ref="purchase_request.purchase_request_view_tree"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='owner_id']" position="after">
-                <field name="request_responsible_id"/>
-            </xpath>
-        </field>
-    </record>
 
     <!-- Form Views -->
     <record id="semlex_purchase_request_view_form" model="ir.ui.view">
@@ -19,9 +8,22 @@
         <field name="inherit_id" ref="purchase_request.purchase_request_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='user_id']" position="after">
-                <field name="request_responsible_id"/>
+                <field name="valid_technical_visible" invisible="1"/>
+                <field name="request_technical_id"/>
+            </xpath>
+            <xpath expr="//button[@name='button_assign']" position="after">
+                 <button name="button_need_technical" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|',('technical_stage_name', '!=', 'confirmed'),('approve_visible','!=',True)]}" string="Need Technical approval" type="object" />
+            </xpath>
+            <xpath expr="//button[@name='button_assign']" position="after">
+                <button name="button_approved" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ['waiting_technical']),('valid_technical_visible','!=',True)]}" string="Approve" type="object" />
+            </xpath>
+
+            <xpath expr="//button[@name='button_assign']" position="replace"></xpath>
+            <xpath expr="//button[@name='button_draft']" position="replace">
+                <button name="button_draft" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', 'in', ('draft','waiting_technical'))]}" string="Set to Draft" type="object" />
             </xpath>
         </field>
     </record>
+
 
 </odoo>
