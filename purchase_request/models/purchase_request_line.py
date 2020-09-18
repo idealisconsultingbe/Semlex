@@ -45,12 +45,8 @@ class PurchaseRequestLine(models.Model):
         ('line_section', 'Section'),
         ('line_note', 'Note')], default=False, help='Technical field for UX purpose.')
     product_available = fields.Float(related='product_id.free_qty')
-    product_qty_to_order = fields.Float(string="Qty to order", compute='_compute_qty_to_order', inverse='_set_qty_to_order', store=False)
+    product_qty_to_order = fields.Float(string="Qty to order", compute='_compute_qty_to_order')
 
-    def _set_qty_to_order(self):
-        return True
-
-    @api.depends('product_qty', 'product_id','order_id')
     def _compute_qty_to_order(self):
         for line in self :
             # type po = order all quantity
@@ -63,7 +59,6 @@ class PurchaseRequestLine(models.Model):
             # type so or line already purchase = order nothing
             if line.order_id or line.purchase_request_id.request_type_id.operation_type == 'so':
                 line.product_qty_to_order = 0
-
 
     @api.depends('product_uom', 'product_qty', 'product_id.uom_id')
     def _compute_product_uom_qty(self):

@@ -3,14 +3,14 @@
 
     <record id="purchase_request_stage_waiting_approval" model="purchase.request.stage">
         <field name="name">Waiting technical</field>
-        <field name="technical_name">waiting_technical</field>
+        <field name="technical_name">waiting_techical</field>
         <field name="sequence">3</field>
         <field name="is_statusbar_disabled">True</field>
     </record>
 
-     <record id="purchase_request.purchase_request_stage_approved" model="purchase.request.stage">
-        <field name="name">Approved</field>
-        <field name="technical_name">approved</field>
+    <record id="purchase_request_stage_technical_approval" model="purchase.request.stage">
+        <field name="name">Technical Approval</field>
+        <field name="technical_name">technical_approval</field>
         <field name="sequence">4</field>
         <field name="is_statusbar_disabled">True</field>
     </record>

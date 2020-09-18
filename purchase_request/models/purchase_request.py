@@ -40,7 +40,8 @@ class PurchaseRequest(models.Model):
         return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], order='sequence', limit=1).id
 
     ref = fields.Char(string='Reference', index=True, default='New',copy=False)
-    request_type_id = fields.Many2one('purchase.request.type', 'Request type',required=True,copy=False)
+    request_type_id = fields.Many2one('purchase.request.type', 'Request type',required=True,copy=False,
+                                      default= lambda self: self.env.ref('purchase_request.purchase_request_type_internal'))
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
                               default=lambda self: self.env.user, required=True, check_company=True)
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', ondelete='set null',
