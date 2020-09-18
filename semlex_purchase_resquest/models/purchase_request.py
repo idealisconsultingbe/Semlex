@@ -6,16 +6,21 @@ from odoo.exceptions import UserError
 class PurchaseRequest(models.Model):
     _inherit = 'purchase.request'
 
-    @api.depends('user_id')
-    def _get_request_responsible(self):
-        """ get request responsible id """
-        for request in self:
-            employee_id = request.env['hr.employee'].search([('user_id', '=', request.user_id.id)], limit=1)
-            if employee_id.parent_id:
-                request.request_responsible_id = employee_id.parent_id.user_id
-            else:
-                request.request_responsible_id = False
+    def get_valid_technical_visible(self):
+        """
+        :param self:
+        :return:
+        """
+        self.valid_technical_visible = self.env.user == self.request_technical_id
 
-    confirm_visible = fields.Boolean(compute='get_confirm_visible')
-    request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
-                                             required=True, compute="_get_request_responsible")
+    valid_technical_visible = fields.Boolean(compute='get_valid_technical_visible')
+    is_technical = fields.Boolean('Technical Resquest',default=False)
+    request_technical_id = fields.Many2one('res.users', string='Technical Responsible', index=True, tracking=True)
+
+    def button_need_technical(self):
+        """ Request Technical approval """
+        for request in self:
+            if not request.request_technical_id:
+                raise UserError(_('Please specify a technical approval.'))
+            request.is_technical = True
+            request.stage_id = self.env.ref('semlex_purchase_resquest.purchase_request_stage_waiting_approval').id

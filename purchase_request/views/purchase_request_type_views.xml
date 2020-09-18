@@ -45,7 +45,7 @@
         <field name="name">Request Type</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">purchase.request.type</field>
-        <field name="view_mode">form,tree</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
 </odoo>
