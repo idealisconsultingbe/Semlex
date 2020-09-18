@@ -9,6 +9,7 @@
     'website': 'http://www.idealisconsulting.com',
     'depends': ['base','purchase_request'],
     'data': [
+        'data/purchase_request_stage_data.xml',
         'view/purchase_request_views.xml',
     ],
     'images': [],
