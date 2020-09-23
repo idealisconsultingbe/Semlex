@@ -35,13 +35,20 @@ class PurchaseRequest(models.Model):
     _order = 'deadline_date, priority desc, id'
     _rec_name = 'ref'
 
+    def _default_request_type(self):
+        if self.env.ref('purchase_request.purchase_request_type_internal'):
+            return self.env.ref('purchase_request.purchase_request_type_internal')
+        else:
+            return False
+
     def _default_stage_id(self):
         """ get default stage id """
         return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], order='sequence', limit=1).id
 
     ref = fields.Char(string='Reference', index=True, default='New',copy=False)
     request_type_id = fields.Many2one('purchase.request.type', 'Request type',required=True,copy=False,
-                                      default= lambda self: self.env.ref('purchase_request.purchase_request_type_internal'))
+                                      default=_default_request_type)
+                                      # default= lambda self: self.env.ref('purchase_request.purchase_request_type_internal'))
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
                               default=lambda self: self.env.user, required=True, check_company=True)
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', ondelete='set null',
@@ -66,7 +73,8 @@ class PurchaseRequest(models.Model):
     remaining_days = fields.Integer(compute='_compute_remaining_days', string="Remaining Days", store=True, help='Remaining days before deadline.')
     color = fields.Integer(string='Color Index', default=0)
     button_convert_visibility = fields.Boolean(string='Convert To Purchase Order Button Visibility', compute='_compute_button_convert_visibility', help='Utility field used to handle convert to purchase button visibility.')
-    picking_id = fields.Many2one('stock.picking', string='Stock Picking', tracking=True, index=True, readonly=True, copy=False)
+    picking_count = fields.Integer(string='Picking Count', compute='_compute_picking_count')
+
     order_count = fields.Integer(string='Number of Purchase Order', compute='_get_purchase_order', readonly=True)
     request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
                                              required=True, compute="_get_request_responsible")
@@ -80,7 +88,7 @@ class PurchaseRequest(models.Model):
             if employee_id.parent_id:
                 request.request_responsible_id = employee_id.parent_id.user_id
             else:
-                request.request_responsible_id = False
+                request.request_responsible_id = int(self.env['ir.config_parameter'].sudo().get_param('purchase_request.manager_id'))
 
     def get_approve_visible(self):
         """
@@ -97,10 +105,17 @@ class PurchaseRequest(models.Model):
     @api.depends('request_line_ids')
     def _compute_line_count(self):
         """ Compute number of lines in a purchase request """
-        line_data = self.env['purchase.request.line'].read_group([('purchase_request_id', 'in', self.ids)], ['purchase_request_id'], ['purchase_request_id'])
+        line_data = self.env['purchase.request.line'].read_group([('purchase_request_id', 'in', self.ids)],
+                                                                 ['purchase_request_id'], ['purchase_request_id'])
         result = dict((data['purchase_request_id'][0], data['purchase_request_id_count']) for data in line_data)
         for request in self:
             request.line_count = result.get(request.id, 0)
+
+    def _compute_picking_count(self):
+        """ Compute number of picking in a purchase request """
+        for request in self:
+            picking_ids = self.env['stock.picking'].search([('purchase_request_id','=',request.id)])
+            request.picking_count = len(picking_ids)
 
     def _compute_remaining_days(self):
         """
@@ -222,7 +237,7 @@ class PurchaseRequest(models.Model):
         for request in self:
             # Create consumption stock picking
             res = self.env['stock.picking'].action_create_stock_picking(request)
-            if res: request.picking_id = res.id
+            # if res: request.picking_id = res.id
             request.stage_id = self.env.ref('purchase_request.purchase_request_stage_validate').id
             # Create purchase order for non available quantity
             request.button_convert()
@@ -249,13 +264,12 @@ class PurchaseRequest(models.Model):
             request.stage_id = self.env.ref('purchase_request.purchase_request_stage_cancelled').id
 
     def go_to_picking(self):
-        self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
             'name': _('Stock Transfert'),
             'res_model': 'stock.picking',
-            'view_mode': 'form,tree',
-            'res_id': self.picking_id.id
+            'view_mode': 'tree,form',
+            'domain': [('purchase_request_id', '=', self.id)],
         }
 
     def go_to_purchase_order(self):
