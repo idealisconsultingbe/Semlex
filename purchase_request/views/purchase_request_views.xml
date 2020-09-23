@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Kanban Views -->
+    <record id="purchase_request_view_kanban" model="ir.ui.view">
+        <field name="name">purchase.request.view.kanban</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column o_opportunity_kanban" on_create="quick_create" quick_create_view="purchase_request.purchase_request_view_quick_create_form"
+                archivable="false">
+                <field name="stage_id" readonly="1"/>
+                <field name="color"/>
+                <field name="user_id"/>
+                <field name="line_count"/>
+                <field name="remaining_days"/>
+                <field name="readonly_stage" invisible="1"/>
+                <field name="message_needaction_counter"/>
+                <field name="activity_state"/>
+                <progressbar field="activity_state" colors='{"planned": "success", "today": "warning", "overdue": "danger"}' help="This bar allows to filter the requests based on scheduled activities."/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="#{!selection_mode ? kanban_color(record.color.raw_value) : ''} oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown">
+
+                                <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                    <span class="fa fa-ellipsis-v"/>
+                                </a>
+                                <div class="dropdown-menu" role="menu">
+                                    <t t-if="widget.editable"><a role="menuitem" type="edit" class="dropdown-item">Edit</a></t>
+                                    <t t-if="widget.deletable"><a role="menuitem" type="delete" class="dropdown-item">Delete</a></t>
+                                    <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                </div>
+                            </div>
+                            <div class="oe_kanban_content">
+                                <div>
+                                    <strong class="o_kanban_record_title"><field name="ref"/></strong>
+                                </div>
+                                <div>
+                                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
+                                </div>
+                                <div class="text-muted o_kanban_record_subtitle">
+                                    <field name="user_id"/><br/>
+                                    <t t-if="record.line_count.raw_value > 0">
+                                        <field name="line_count"/>
+                                        <t t-if="record.line_count.raw_value > 1"><span> lines</span></t>
+                                        <t t-else=""><span> line</span></t><br/>
+                                    </t>
+                                    <t t-if="record.remaining_days.raw_value &lt; 1">
+                                        <span class="text-danger"><field name="deadline_date"/></span>
+                                    </t>
+                                    <t t-elif="record.remaining_days.raw_value &lt; 8">
+                                        <span class="text-warning"><field name="deadline_date"/></span>
+                                    </t>
+                                    <t t-else="">
+                                        <field name="deadline_date"/>
+                                    </t>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="priority" widget="priority" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
+                                        <t t-if="record.message_needaction_counter.raw_value">
+                                            <span role="alert" class='oe_kanban_mail_new' title='Unread Messages'><i class='fa fa-comments' aria-label="Unread messages" role="img"/><t t-raw="record.message_needaction_counter.raw_value"/></span>
+                                        </t>
+                                        <field name="activity_ids" widget="kanban_activity"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <img t-att-src="kanban_image('res.users', 'image_128', record.user_id.raw_value)" t-att-title="record.user_id.value" t-att-alt="record.user_id.value" class="oe_kanban_avatar"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="oe_clear"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Tree Views -->
+    <record id="purchase_request_view_tree" model="ir.ui.view">
+        <field name="name">purchase.request.view.tree</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <tree string="Purchase Requests" decoration-muted="technical_stage_name=='cancelled'">
+                <field name="ref"/>
+                <field name="user_id" string="Representative"/>
+                <field name="owner_id" optional="hide" string="Owner"/>
+                <field name="request_responsible_id"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="date_request" optional="show"/>
+                <field name="date_confirm" optional="hide"/>
+                <field name="deadline_date" optional="show" string="Deadline"/>
+                <field name="stage_id" optional="show"/>
+                <field name="technical_stage_name" invisible="1"/>
+                <field name="line_count" optional="show" string="Line Count"/>
+                <field name="priority" optional="hide"/>
+                <field name="analytic_account_id" optional="hide"/>
+                <field name="tag_ids" optional="hide" widget="many2many_tags"/>
+                <field name="message_needaction" invisible="1"/>
+                <field name="activity_exception_decoration" widget="activity_exception"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form Views -->
+    <record id="purchase_request_view_form" model="ir.ui.view">
+        <field name="name">purchase.request.view.form</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <form string="Purchase Request" class="o_purchase_order">
+                <header>
+                    <field name="technical_stage_name" invisible="1"/>
+                    <field name="readonly_stage" invisible="1"/>
+                    <field name="picking_count" invisible="1"/>
+                    <field name="order_count" invisible="1"/>
+                    <field name="approve_visible" invisible="1"/>
+                    <field name="disabled_statusbar" invisible="1"/>
+                    <field name="button_convert_visibility" invisible="1"/>
+                    <button name="button_valid" groups="purchase.group_purchase_manager" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ['approved']),('button_convert_visibility','=',False)]}" string="Validate" type="object" class="oe_highlight"/>
+                    <button name="button_assign" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '!=', 'confirmed')]}" string="Assign to Me" type="object" />
+                    <button name="button_approved" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ['confirmed']),('approve_visible','!=',True)]}" string="Approve" type="object" />
+                    <button name="button_confirm" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner,purchase_request.purchase_request_group_user" type="object" attrs="{'invisible': [('technical_stage_name', '!=', 'draft')]}" string="Confirm Request" class="oe_highlight"/>
+                    <button name="button_draft" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|','|',('technical_stage_name', '=', 'draft'),('picking_count','!=',0),('order_count','!=',0)]}" string="Set to Draft" type="object" />
+                    <button name="button_cancel" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|','|',('technical_stage_name', '=', 'cancelled'),('picking_count','!=',0),('order_count','!=',0)]}" string="Cancel" type="object" />
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" readonly="1"/>
+<!--                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" attrs="{'readonly': [('disabled_statusbar', '=', True)]}"/>-->
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button icon="fa-shopping-cart" type="object" name="go_to_purchase_order" class="oe_stat_button" attrs="{'invisible': [('order_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="order_count"/></span>
+                                <span class="o_stat_text">Purchase</span>
+                            </div>
+                        </button>
+                        <button icon="fa-truck" type="object" name="go_to_picking" class="oe_stat_button" attrs="{'invisible': [('picking_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="picking_count"/></span>
+                                <span class="o_stat_text">Picking</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <span class="o_form_label">Request for Purchase </span>
+                        <h1>
+                            <field name="ref" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="request_type_id"/>
+                            <field name="user_id" readonly="1" string="Representative"/>
+                            <field name="owner_id" widget="res_partner_many2one" string="Owner" attrs="{'readonly': [('readonly_stage', '=', True)], 'invisible': [('technical_stage_name', 'in', ['draft', 'cancelled'])]}"/>
+                            <field name="request_responsible_id"/>
+                            <field name="currency_id" groups="base.group_multi_currency" attrs="{'readonly': [('readonly_stage', '=', True)]}" force_save="1"/>
+                            <field name="company_id" groups="base.group_multi_company" attrs="{'readonly': [('readonly_stage', '=', True)]}" options="{'no_create': True}"/>
+                            <field name="priority" widget="priority" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
+                        </group>
+                        <group>
+                            <field name="analytic_account_id" options="{'no_create_edit': True}"  attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}" placeholder="Request Tags..." attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
+                            <field name="date_request" string="Created On" readonly="1"/>
+                            <field name="date_confirm" string="Confirmed On" readonly="1" attrs="{'invisible': [('technical_stage_name', '=', 'draft')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="request_line_ids"
+                                widget="section_and_note_one2many"
+                                attrs="{'readonly': [('readonly_stage', '=', True)]}">
+                                <tree string="Purchase Request Lines" editable="bottom" decoration-warning="date_reminder &lt; current_date" decoration-danger="date_expected &lt; current_date" >
+                                    <control>
+                                        <create name="add_product_control" string="Add a product"/>
+                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                    </control>
+                                    <field name="display_type" invisible="1"/>
+                                    <field name="product_type" invisible="1"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field
+                                        name="product_id"
+                                        attrs="{'required': [('display_type', '=', False), ('name', '=', False)]}"
+                                        context="{'partner_id':partner_id, 'quantity':product_qty,'uom':product_uom, 'company_id': parent.company_id}"
+                                        force_save="1" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]" optional="show"/>
+                                    <field name="name" widget="section_and_note_text" attrs="{'required': [('display_type', '=', False), ('product_id', '=', False)]}" optional="show" placeholder="Select a product or enter a description"/>
+                                    <field name="date_expected" string="Expected Date" optional="show" attrs="{'required': [('display_type', '=', False)]}"/>
+                                    <field name="date_reminder" invisible="1"/>
+                                    <field name="partner_id" optional="show" domain="[('company_id', '=', False)]"/>
+                                    <field name="product_qty" attrs="{'required': [('display_type', '=', False)]}" optional="show"/>
+                                    <field name="product_uom" string="UoM" groups="uom.group_uom"
+                                        attrs="{'required': [('display_type', '=', False)]}"
+                                        force_save="1" optional="show"/>
+                                    <field name="price_unit" optional="hide"/>
+                                    <field name="product_available" optional="show"/>
+                                    <field name="product_qty_to_order" optional="show"/>
+                                    <field name="order_id" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
+                                    <field name="order_state" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
+                                    <field name="order_reception_date" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
+                                    <field name="attachment_number" string=" " readonly="1"/>
+                                    <button name="action_get_attachment_view" string="View Attachments" type="object" icon="fa-paperclip"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="purchase_request_view_quick_create_form" model="ir.ui.view">
+        <field name="name">purchase.request.view.quick.create.form</field>
+        <field name="model">purchase.request</field>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="user_id" invisible="1"/>
+                    <field name="stage_id" invisible="1"/>
+                    <h1>
+                        <field name="ref" nolabel="1" readonly="1"/>
+                    </h1>
+                    <field name="analytic_account_id" nolabel="1" placeholder="Analytic Account" options="{'no_create_edit': True}" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+                    <field name="tag_ids" widget="many2many_tags" nolabel="1" options="{'color_field': 'color', 'no_create_edit': True}" placeholder="Request Tags..."/>
+                    <field name="priority" nolabel="1" widget="priority"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search Views -->
+    <record id="purchase_request_view_search" model="ir.ui.view">
+        <field name="name">purchase.request.view.search</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <search string="Search Purchase Request">
+                <field name="ref" string="Request" filter_domain="[('ref', 'ilike', self)]"/>
+                <field name="tag_ids" string="Tag" filter_domain="[('tag_ids', 'ilike', self)]"/>
+                <field name="owner_id" string="Owner"/>
+                <field name="user_id" string="Representative"/>
+                <field name="stage_id" string="Stage" filter_domain="[('stage_id', 'ilike', self)]"/>
+                <filter name="my_requests" string="My Requests" domain="[('user_id', '=', uid)]"/>
+                <filter name="my_assigned_requests" string="Assigned To Me" domain="[('owner_id', '=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('technical_stage_name', '=', 'draft')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('technical_stage_name', '=', 'confirmed')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('technical_stage_name', '=', 'cancelled')]"/>
+                <filter name="hide_draft_cancelled" string="Hide draft and cancelled requests" domain="[('technical_stage_name', 'not in', ('draft', 'cancelled'))]"/>
+                <separator/>
+                <filter name="request_date" string="Request Date" date="date_request"/>
+                <filter name="confirm_date" string="Confirm Date" date="date_confirm"/>
+                <filter name="deadline_date" string="Deadline" date="deadline_date"/>
+                <separator/>
+                <filter invisible="1" string="Late Activities" name="activities_overdue"
+                    domain="[('activity_ids.date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"
+                    help="Show all records which has next action date is before today"/>
+                <filter invisible="1" string="Today Activities" name="activities_today"
+                    domain="[('activity_ids.date_deadline', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter invisible="1" string="Future Activities" name="activities_upcoming_all"
+                    domain="[('activity_ids.date_deadline', '&gt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="Warnings" name="activities_exception"
+                    domain="[('activity_exception_decoration', '!=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Stage" name="stage" context="{'group_by':'stage_id'}"/>
+                    <filter string="Company" name="company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                    <filter string="Request Owner" name="owner" domain="[]" context="{'group_by': 'owner_id'}"/>
+                    <filter string="Request Representative" name="representative" domain="[]" context="{'group_by': 'user_id'}"/>
+                    <filter string="Request Date" name="request_date" domain="[]" context="{'group_by': 'date_request'}"/>
+                    <filter string="Confirm Date" name="confirm_date" domain="[]" context="{'group_by': 'date_confirm'}"/>
+                    <filter string="Deadline" name="deadline_date" domain="[]" context="{'group_by': 'deadline_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="purchase_request_action" model="ir.actions.act_window">
+        <field name="name">Purchase Requests</field>
+        <field name="res_model">purchase.request</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="purchase_request_view_search"/>
+    </record>
+
+    <record id="purchase_request_to_approve_action" model="ir.actions.act_window">
+        <field name="name">Purchase Requests To Approve</field>
+        <field name="res_model">purchase.request</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="purchase_request_view_search"/>
+        <field name="domain">[('technical_stage_name', '=', 'confirmed'),('request_responsible_id','=', uid)]</field>
+    </record>
+
+    <record id="purchase_request_view_tree_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="purchase_request_view_tree"/>
+        <field name="act_window_id" ref="purchase_request_action"/>
+    </record>
+
+    <record id="purchase_request_view_kanban_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="purchase_request_view_kanban"/>
+        <field name="act_window_id" ref="purchase_request_action"/>
+    </record>
+
+    <!-- Menu structure-->
+    <menuitem
+        id="purchase_request_menu"
+        name="Purchase Request"
+        web_icon="purchase_request,static/description/icon.png"
+        sequence="27"/>
+
+    <menuitem
+        id="purchase_request_menu_request"
+        name="Requests"
+        parent="purchase_request_menu"
+        sequence="5"/>
+
+    <menuitem
+        id="purchase_request_menu_config"
+        name="Configuration"
+        parent="purchase_request_menu"
+        sequence="20"/>
+
+    <menuitem id="purchase_request_config_settings_menu"
+        name="Settings"
+        parent="purchase_request_menu_config"
+        action="purchase_request_config_settings_action"
+        groups="base.group_system"
+        sequence="0"/>
+
+    <menuitem
+        id="purchase_request_menu_all_requests"
+        name="Requests"
+        action="purchase_request_action"
+        parent="purchase_request_menu_request"
+        sequence="6"/>
+
+    <menuitem
+        id="purchase_request_menu_requests_to_approve"
+        name="Requests To Approve"
+        action="purchase_request_to_approve_action"
+        parent="purchase_request_menu_request"
+        sequence="6"/>
+
+    <menuitem
+        id="purchase_request_menu_all_request_lines"
+        name="Request Lines"
+        action="purchase_request_line_action"
+        parent="purchase_request_menu_request"
+        sequence="8"/>
+
+    <menuitem
+            id="purchase_request_menu_tag_config"
+            name="Request Tags"
+            parent="purchase_request_menu_config"
+            action="purchase_request_tag_action"
+            sequence="25"
+            groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager"/>
+
+    <menuitem
+            id="purchase_request_menu_type_config"
+            name="Request Type"
+            parent="purchase_request_menu_config"
+            action="purchase_request_type_action"
+            sequence="26"
+            groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager"/>
+
+</odoo>

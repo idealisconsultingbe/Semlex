@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="purchase_request_stage_waiting_approval" model="purchase.request.stage">
+        <field name="name">Waiting technical</field>
+        <field name="technical_name">waiting_technical</field>
+        <field name="sequence">3</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
+
+     <record id="purchase_request.purchase_request_stage_approved" model="purchase.request.stage">
+        <field name="name">Approved</field>
+        <field name="technical_name">approved</field>
+        <field name="sequence">4</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
+
+    <record id="purchase_request.purchase_request_stage_validate" model="purchase.request.stage">
+        <field name="name">Validate</field>
+        <field name="technical_name">validate</field>
+        <field name="sequence">5</field>
+        <field name="is_statusbar_disabled">True</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--Email template -->
+    <record id="mail_template_iso_impact" model="mail.template">
+        <field name="name">ISO Advise: Send by Email</field>
+        <field name="model_id" ref="purchase_request.model_purchase_request"/>
+        <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) |safe}</field>
+        <field name="subject">ISO Impact - Purchase Request (Ref ${object.ref or 'n/a'})</field>
+        <field name="body_html" type="xml">
+            <div style="background:#F0F0F0;color:#515166;padding:10px 0px;font-family:Arial,Helvetica,sans-serif;font-size:14px;">
+                <table style="width:600px;margin:5px auto;">
+                    <tbody>
+                        <tr><td>
+                            <a href="/"><img src="/web/binary/company_logo" style="vertical-align:baseline;max-width:100px;" /></a>
+                        </td><td style="text-align:right;vertical-align:middle;">
+                                Purchase Request
+                        </td></tr>
+                    </tbody>
+                </table>
+                <table style="width:600px;margin:0px auto;background:white;border:1px solid #e1e1e1;">
+                    <tbody>
+                        <tr><td style="padding:15px 20px 10px 20px;">
+                            <p>The Purchase Request have a ISO impact
+                            </p>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <record id="purchase_request_sequence" model="ir.sequence">
+        <field name="name">Purchase Request Sequence</field>
+        <field name="code">purchase.request</field>
+        <field name="prefix">RFQ</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <!-- purchase request type -->
+   <record id="purchase_request_type_internal" model="purchase.request.type">
+        <field name="name">Internal</field>
+        <field name="operation_type">po_stock</field>
+        <field name="stock_picking_type_id" ref="stock.picking_type_internal"></field>
+    </record>
+   <record id="purchase_request_type_storage" model="purchase.request.type">
+        <field name="name">Storage</field>
+        <field name="operation_type">po</field>
+    </record>
+
+</odoo>
+
+
