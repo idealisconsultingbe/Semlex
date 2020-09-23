@@ -16,6 +16,7 @@
         'security/ir.model.access.csv',
         'data/purchase_request_stage_data.xml',
         'data/purchase_request_data.xml',
+        'views/res_config_settings_views.xml',
         'views/purchase_order_views.xml',
         'views/purchase_request_line_views.xml',
         'views/purchase_request_tag_views.xml',

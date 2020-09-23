@@ -10,6 +10,8 @@
     'depends': ['base','purchase_request'],
     'data': [
         'data/purchase_request_stage_data.xml',
+        'data/mail_template_data.xml',
+        'view/res_config_settings_views.xml',
         'view/purchase_request_views.xml',
     ],
     'images': [],

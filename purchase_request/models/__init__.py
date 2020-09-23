@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from . import res_config_settings
 from . import purchase_request
 from . import purchase_request_tag
 from . import purchase_request_stage

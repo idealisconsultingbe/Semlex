@@ -111,17 +111,17 @@
                 <header>
                     <field name="technical_stage_name" invisible="1"/>
                     <field name="readonly_stage" invisible="1"/>
-                    <field name="picking_id" invisible="1"/>
+                    <field name="picking_count" invisible="1"/>
                     <field name="order_count" invisible="1"/>
                     <field name="approve_visible" invisible="1"/>
                     <field name="disabled_statusbar" invisible="1"/>
                     <field name="button_convert_visibility" invisible="1"/>
-                    <button name="button_valid" groups="purchase.group_purchase_manager" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ['approved'])]}" string="Validate" type="object" class="oe_highlight"/>
+                    <button name="button_valid" groups="purchase.group_purchase_manager" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ['approved']),('button_convert_visibility','=',False)]}" string="Validate" type="object" class="oe_highlight"/>
                     <button name="button_assign" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '!=', 'confirmed')]}" string="Assign to Me" type="object" />
                     <button name="button_approved" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ['confirmed']),('approve_visible','!=',True)]}" string="Approve" type="object" />
                     <button name="button_confirm" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner,purchase_request.purchase_request_group_user" type="object" attrs="{'invisible': [('technical_stage_name', '!=', 'draft')]}" string="Confirm Request" class="oe_highlight"/>
-                    <button name="button_draft" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '=', 'draft')]}" string="Set to Draft" type="object" />
-                    <button name="button_cancel" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', '=', 'cancelled')]}" string="Cancel" type="object" />
+                    <button name="button_draft" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|','|',('technical_stage_name', '=', 'draft'),('picking_count','!=',0),('order_count','!=',0)]}" string="Set to Draft" type="object" />
+                    <button name="button_cancel" groups="purchase.group_purchase_manager,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|','|',('technical_stage_name', '=', 'cancelled'),('picking_count','!=',0),('order_count','!=',0)]}" string="Cancel" type="object" />
                     <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" readonly="1"/>
 <!--                    <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" attrs="{'readonly': [('disabled_statusbar', '=', True)]}"/>-->
                 </header>
@@ -133,7 +133,12 @@
                                 <span class="o_stat_text">Purchase</span>
                             </div>
                         </button>
-                        <button string="Picking" icon="fa-truck" type="object" name="go_to_picking" class="oe_stat_button" attrs="{'invisible': [('picking_id', '=', False)]}"/>
+                        <button icon="fa-truck" type="object" name="go_to_picking" class="oe_stat_button" attrs="{'invisible': [('picking_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="picking_count"/></span>
+                                <span class="o_stat_text">Picking</span>
+                            </div>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <span class="o_form_label">Request for Purchase </span>
@@ -188,7 +193,7 @@
                                         force_save="1" optional="show"/>
                                     <field name="price_unit" optional="hide"/>
                                     <field name="product_available" optional="show"/>
-<!--                                    <field name="product_qty_to_order" optional="show"/>-->
+                                    <field name="product_qty_to_order" optional="show"/>
                                     <field name="order_id" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_state" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_reception_date" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
@@ -324,6 +329,13 @@
         name="Configuration"
         parent="purchase_request_menu"
         sequence="20"/>
+
+    <menuitem id="purchase_request_config_settings_menu"
+        name="Settings"
+        parent="purchase_request_menu_config"
+        action="purchase_request_config_settings_action"
+        groups="base.group_system"
+        sequence="0"/>
 
     <menuitem
         id="purchase_request_menu_all_requests"
