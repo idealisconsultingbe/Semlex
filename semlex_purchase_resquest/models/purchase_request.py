@@ -27,7 +27,7 @@ class PurchaseRequest(models.Model):
                     template = self.env['mail.template'].browse(config_mail_template)
                     email_values = {
                         }
-                    template.send_mail(request.id, force_send=True, email_values=email_values)
+                    template.sudo().send_mail(request.id, force_send=True, email_values=email_values)
                 else:
                     raise UserError(_('Please define a ISO mail template in the configuration.'))
 
