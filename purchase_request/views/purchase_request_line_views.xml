@@ -21,6 +21,7 @@
                 <field name="product_qty_to_order" optional="show"/>
                 <field name="product_uom" groups="uom.group_uom" optional="show"/>
                 <field name="price_unit" optional="show"/>
+                <field name="price_subtotal" optional="show"/>
             </tree>
         </field>
     </record>

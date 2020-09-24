@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- Product Category - view custom for semlex -->
+    <record model="ir.ui.view" id="semlex_product_category_form_view">
+        <field name="name">semlex.product.category.form.view</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+              <xpath expr="//field[@name='parent_id']" position="after">
+                    <field name="technical_manager_id"/>
+              </xpath>
+        </field>
+    </record>
+</odoo>
