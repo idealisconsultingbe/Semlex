@@ -47,6 +47,12 @@ class PurchaseRequestLine(models.Model):
     product_available = fields.Float(related='product_id.free_qty')
     product_qty_to_order = fields.Float(string="Qty to order", compute='_compute_qty_to_order', inverse='_set_qty_to_order', store=True, copy=False)
     picking_ids = fields.One2many('stock.picking', 'purchase_request_id', 'Purchase Request', copy=False)
+    price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal')
+    currency_id = fields.Many2one('res.currency', related='purchase_request_id.currency_id')
+
+    def _compute_amount(self):
+        for line in self:
+            line.price_subtotal = line.price_unit * line.product_qty
 
     def _set_qty_to_order(self):
         return True
@@ -113,6 +119,10 @@ class PurchaseRequestLine(models.Model):
                     company_id=self.company_id.id,
                 )
                 line.name = line._get_product_purchase_description(product_lang)
+                # Assign default vendors and price
+                supplier_info = line.product_id._select_seller(quantity=line.product_qty)
+                line.partner_id = supplier_info.name.id
+                line.price_unit = supplier_info.price
                 res['domain'] = {'product_uom': [('category_id', '=', line.product_uom_category_id.id)], }
             else:
                 line.name = False

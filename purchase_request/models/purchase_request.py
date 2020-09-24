@@ -79,6 +79,17 @@ class PurchaseRequest(models.Model):
     request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
                                              required=True, compute="_get_request_responsible")
     approve_visible = fields.Boolean(compute='get_approve_visible')
+    amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all')
+
+    @api.depends('request_line_ids.price_subtotal')
+    def _amount_all(self):
+        for request in self:
+            amount_total=0
+            for line in request.request_line_ids:
+                amount_total += line.price_subtotal
+            request.update({
+                'amount_total': amount_total,
+            })
 
     @api.depends('user_id')
     def _get_request_responsible(self):
