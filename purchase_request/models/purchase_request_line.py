@@ -19,11 +19,11 @@ class PurchaseRequestLine(models.Model):
             return uom.id
         return None
 
-    name = fields.Text(string='Description')
+    name = fields.Text(string='Description', tracking=True)
     sequence = fields.Integer(string='Sequence', default=10)
     date_expected = fields.Date(string='Expected Date', index=True, required=True, tracking=True, default=_default_expected_date, help='When request products should be received.')
     date_reminder = fields.Date(string='Reminder Date', compute='_compute_date_reminder', help='One week before expected date.')
-    product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True, default="1.0")
+    product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True, default="1.0", tracking=True)
     product_uom_qty = fields.Float(string='Total Quantity', compute='_compute_product_uom_qty', store=True, help='Product quantity according to specified unit of measure.')
     product_uom = fields.Many2one('uom.uom', string='Unit of Measure', domain="[('category_id', '=', product_uom_category_id)]", default=_default_product_uom)
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.category_id')
@@ -47,7 +47,7 @@ class PurchaseRequestLine(models.Model):
     product_available = fields.Float(related='product_id.free_qty')
     product_qty_to_order = fields.Float(string="Qty to order", compute='_compute_qty_to_order', inverse='_set_qty_to_order', store=True, copy=False)
     picking_ids = fields.One2many('stock.picking', 'purchase_request_id', 'Purchase Request', copy=False)
-    price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal')
+    price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal',tracking=True)
     currency_id = fields.Many2one('res.currency', related='purchase_request_id.currency_id')
 
     def _compute_amount(self):
