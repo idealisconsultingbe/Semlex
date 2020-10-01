@@ -1,16 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+        <!-- Kanban Views -->
+    <record id="semlex_purchase_request_view_kanban" model="ir.ui.view">
+        <field name="name">semlex.purchase.request.view.kanban</field>
+        <field name="model">purchase.request</field>
+        <field name="inherit_id" ref="purchase_request.purchase_request_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='request_responsible_id']" position="after">
+                <field name="user_technical_to_approve_ids"/>
+            </xpath>
+            <xpath expr="//h3[@id='responsible_id']" position="after">
+                <div class="mt8 text-danger">
+                    <field name="user_technical_to_approve_ids" />
+                </div>
+
+            </xpath>
+        </field>
+    </record>
+
+
     <!-- Form Views -->
     <record id="semlex_purchase_request_view_form" model="ir.ui.view">
         <field name="name">semlex.purchase.request.view.form</field>
         <field name="model">purchase.request</field>
         <field name="inherit_id" ref="purchase_request.purchase_request_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='user_id']" position="after">
-                <field name="valid_technical_visible" invisible="1"/>
+
+            <xpath expr="//page//field[@name='request_line_ids']//tree//field[@name='product_id']" position="after">
                 <field name="request_technical_id"/>
+                <field name="request_technical_stage_name" invisible="1"/>
+                <field name="technical_approve_visible" invisible="1"/>
+                <button name="button_tech_validation" class="btn btn-primary btn-sm"
+                        attrs="{'invisible': ['|','|',('request_technical_stage_name', '!=', 'waiting_technical'),('technical_approve_visible','!=',True),('technical_approval','=',True)]}"
+                        string="Approve" type="object" />
+                <field name="technical_approval" string="validate" attrs="{'invisible': [('request_technical_id','=',False)]}"/>
             </xpath>
+
             <xpath expr="//field[@name='analytic_account_id']" position="after">
                 <field name="is_iso_impact" string="ISO impacts"/>
             </xpath>
@@ -21,12 +47,6 @@
                     </strong>
                 </div>
 			</xpath>
-            <xpath expr="//button[@name='button_assign']" position="after">
-                 <button name="button_need_technical" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|',('technical_stage_name', '!=', 'confirmed'),('approve_visible','!=',True)]}" string="Need Technical approval" type="object" />
-            </xpath>
-            <xpath expr="//button[@name='button_approved']" position="after">
-                <button name="button_tech_approved" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': ['|',('technical_stage_name', 'not in', ('waiting_technical')),('valid_technical_visible','!=',True)]}" string="Approve" type="object" />
-            </xpath>
             <xpath expr="//button[@name='button_assign']" position="replace"></xpath>
             <xpath expr="//button[@name='button_draft']" position="replace">
                 <button name="button_draft" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', 'in', ('draft','waiting_technical'))]}" string="Set to Draft" type="object" />

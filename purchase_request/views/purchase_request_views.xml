@@ -11,6 +11,7 @@
                 <field name="stage_id" readonly="1"/>
                 <field name="color"/>
                 <field name="user_id"/>
+                <field name="request_responsible_id"/>
                 <field name="line_count"/>
                 <field name="remaining_days"/>
                 <field name="readonly_stage" invisible="1"/>
@@ -39,7 +40,13 @@
                                     <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
                                 </div>
                                 <div class="text-muted o_kanban_record_subtitle">
-                                    <field name="user_id"/><br/>
+                                    <h3 class="o_kanban_record_title badge badge-pill badge-info" id="user_id">
+                                        <field name="user_id" />
+                                    </h3>
+                                    <h3 class="o_kanban_record_title badge badge-pill badge-warning" id="responsible_id">
+                                        <field name="request_responsible_id" />
+                                    </h3>
+                                    <br/>
                                     <t t-if="record.line_count.raw_value > 0">
                                         <field name="line_count"/>
                                         <t t-if="record.line_count.raw_value > 1"><span> lines</span></t>
@@ -95,6 +102,7 @@
                 <field name="line_count" optional="show" string="Line Count"/>
                 <field name="priority" optional="hide"/>
                 <field name="analytic_account_id" optional="hide"/>
+                <field name="amount_total" optional="show" sum="amount_total"/>
                 <field name="tag_ids" optional="hide" widget="many2many_tags"/>
                 <field name="message_needaction" invisible="1"/>
                 <field name="activity_exception_decoration" widget="activity_exception"/>
@@ -191,16 +199,23 @@
                                     <field name="product_uom" string="UoM" groups="uom.group_uom"
                                         attrs="{'required': [('display_type', '=', False)]}"
                                         force_save="1" optional="show"/>
-                                    <field name="price_unit" optional="hide"/>
                                     <field name="product_available" optional="show"/>
                                     <field name="product_qty_to_order" optional="show"/>
                                     <field name="order_id" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_state" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_reception_date" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
+                                    <field name="price_unit" optional="show"/>
+                                    <field name="price_subtotal" optional="show"/>
                                     <field name="attachment_number" string=" " readonly="1"/>
                                     <button name="action_get_attachment_view" string="View Attachments" type="object" icon="fa-paperclip"/>
                                 </tree>
                             </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <div class="oe_inline">
+                                    <label for="amount_total"/>
+                                </div>
+                                <field name="amount_total" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -348,6 +363,7 @@
         id="purchase_request_menu_requests_to_approve"
         name="Requests To Approve"
         action="purchase_request_to_approve_action"
+        groups="purchase_request.purchase_request_group_manager"
         parent="purchase_request_menu_request"
         sequence="6"/>
 

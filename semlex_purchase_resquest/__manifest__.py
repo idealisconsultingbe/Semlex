@@ -11,6 +11,7 @@
     'data': [
         'data/purchase_request_stage_data.xml',
         'data/mail_template_data.xml',
+        'view/product_view.xml',
         'view/res_config_settings_views.xml',
         'view/purchase_request_views.xml',
     ],

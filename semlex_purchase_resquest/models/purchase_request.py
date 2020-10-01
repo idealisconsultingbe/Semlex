@@ -6,16 +6,19 @@ from odoo.exceptions import UserError
 class PurchaseRequest(models.Model):
     _inherit = 'purchase.request'
 
-    def get_valid_technical_visible(self):
-        """
-        :param self:
-        :return:
-        """
-        self.valid_technical_visible = self.env.user == self.request_technical_id
-
-    valid_technical_visible = fields.Boolean(compute='get_valid_technical_visible')
-    request_technical_id = fields.Many2one('res.users', string='Technical Responsible', index=True, tracking=True)
     is_iso_impact = fields.Boolean('Request with ISO impacts',default=False,copy=False)
+    user_technical_to_approve_ids = fields.Many2many('res.users', string='Technical Responsible to Approve',
+                                                     compute='_compute_technical_to_approve',store=True)
+
+    @api.depends('request_line_ids.technical_approval','request_line_ids.technical_stage_name')
+    def _compute_technical_to_approve(self):
+        """Technical user who must yet approve request"""
+        self.user_technical_to_approve_ids = False
+        for request in self.filtered(lambda r: r.technical_stage_name == 'waiting_technical'):
+            line_top_approve = request.request_line_ids.filtered(lambda l: l.request_technical_id != False and l.technical_approval == False)
+            manager_to_approve = line_top_approve.mapped("request_technical_id")
+            request.user_technical_to_approve_ids = manager_to_approve
+
 
     def button_confirm(self):
         """ Send mail for ISO impacts """
@@ -27,19 +30,15 @@ class PurchaseRequest(models.Model):
                     template = self.env['mail.template'].browse(config_mail_template)
                     email_values = {
                         }
-                    template.send_mail(request.id, force_send=True, email_values=email_values)
+                    template.sudo().send_mail(request.id, force_send=True, email_values=email_values)
                 else:
                     raise UserError(_('Please define a ISO mail template in the configuration.'))
 
-
-    def button_need_technical(self):
-        """ Request Technical approval """
+    def button_approved(self):
+        """ Request Manager approval - add waiting technical step"""
         for request in self:
-            if not request.request_technical_id:
-                raise UserError(_('Please specify a technical approval.'))
-            request.stage_id = self.env.ref('semlex_purchase_resquest.purchase_request_stage_waiting_approval').id
-
-    def button_tech_approved(self):
-        """ Technical approval """
-        for request in self:
-            request.button_approved()
+            request_line_to_technical = request.request_line_ids.filtered(lambda l: l.request_technical_id.id != False and l.technical_approval == False)
+            if not request_line_to_technical:
+                request.stage_id = self.env.ref('purchase_request.purchase_request_stage_approved').id
+            else :
+                request.stage_id = self.env.ref('semlex_purchase_resquest.purchase_request_stage_waiting_approval').id
