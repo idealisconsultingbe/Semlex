@@ -19,7 +19,6 @@ class PurchaseRequest(models.Model):
             manager_to_approve = line_top_approve.mapped("request_technical_id")
             request.user_technical_to_approve_ids = manager_to_approve
 
-
     def button_confirm(self):
         """ Send mail for ISO impacts """
         for request in self:
@@ -33,6 +32,13 @@ class PurchaseRequest(models.Model):
                     template.sudo().send_mail(request.id, force_send=True, email_values=email_values)
                 else:
                     raise UserError(_('Please define a ISO mail template in the configuration.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Purchase Requests'),
+            'res_model': 'purchase.request',
+            'view_mode': 'kanban,tree,form',
+            'target': 'main',
+              }
 
     def button_approved(self):
         """ Request Manager approval - add waiting technical step"""
@@ -42,3 +48,11 @@ class PurchaseRequest(models.Model):
                 request.stage_id = self.env.ref('purchase_request.purchase_request_stage_approved').id
             else :
                 request.stage_id = self.env.ref('semlex_purchase_resquest.purchase_request_stage_waiting_approval').id
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Purchase Requests'),
+            'res_model': 'purchase.request',
+            'view_mode': 'kanban,tree,form',
+            'target': 'main',
+              }

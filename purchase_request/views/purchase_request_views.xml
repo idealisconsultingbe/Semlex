@@ -194,13 +194,13 @@
                                     <field name="name" widget="section_and_note_text" attrs="{'required': [('display_type', '=', False), ('product_id', '=', False)]}" optional="show" placeholder="Select a product or enter a description"/>
                                     <field name="date_expected" string="Expected Date" optional="show" attrs="{'required': [('display_type', '=', False)]}"/>
                                     <field name="date_reminder" invisible="1"/>
-                                    <field name="partner_id" optional="show" domain="[('company_id', '=', False)]"/>
+                                    <field name="partner_id" optional="show" domain="[('company_id', '=', False)]"cha/>
                                     <field name="product_qty" attrs="{'required': [('display_type', '=', False)]}" optional="show"/>
                                     <field name="product_uom" string="UoM" groups="uom.group_uom"
                                         attrs="{'required': [('display_type', '=', False)]}"
                                         force_save="1" optional="show"/>
                                     <field name="product_available" optional="show"/>
-                                    <field name="product_qty_to_order" optional="show"/>
+                                    <field name="product_qty_to_order" optional="show" groups="purchase.group_purchase_manager"/>
                                     <field name="order_id" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_state" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>
                                     <field name="order_reception_date" attrs="{'column_invisible': [('parent.technical_stage_name', 'in', ['draft','cancelled'])], 'readonly': True}" optional="hide"/>

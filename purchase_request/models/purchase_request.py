@@ -81,7 +81,7 @@ class PurchaseRequest(models.Model):
     approve_visible = fields.Boolean(compute='get_approve_visible')
     amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all')
 
-    @api.depends('request_line_ids.price_subtotal')
+    @api.depends('request_line_ids')
     def _amount_all(self):
         for request in self:
             amount_total=0
@@ -252,6 +252,15 @@ class PurchaseRequest(models.Model):
             request.stage_id = self.env.ref('purchase_request.purchase_request_stage_validate').id
             # Create purchase order for non available quantity
             request.button_convert()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Purchase Requests'),
+            'res_model': 'purchase.request',
+            'view_mode': 'kanban,tree,form',
+            'target': 'main',
+              }
+
 
     def button_approved(self):
         """ Request Manager approval """
