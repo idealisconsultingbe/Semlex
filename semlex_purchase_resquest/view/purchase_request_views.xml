@@ -36,7 +36,9 @@
                         string="Approve" type="object" />
                 <field name="technical_approval" string="validate" attrs="{'invisible': [('request_technical_id','=',False)]}"/>
             </xpath>
-
+            <xpath expr="//field[@name='currency_id']" position="replace">
+                <field name="currency_id" groups="base.group_multi_currency" attrs="{'readonly': [('readonly_stage', '=', True)]}" force_save="1" invisible="1"/>
+            </xpath>
             <xpath expr="//field[@name='analytic_account_id']" position="after">
                 <field name="is_iso_impact" string="ISO impacts"/>
             </xpath>

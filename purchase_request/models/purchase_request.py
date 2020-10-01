@@ -63,7 +63,7 @@ class PurchaseRequest(models.Model):
     technical_stage_name = fields.Char(related='stage_id.technical_name', string='Technical Stage Name', store=True, help='Utility field used in UI.')
     readonly_stage = fields.Boolean(string='Is Fields Edition Forbidden', related='stage_id.is_readonly', help='Utility field used to prevent field edition if request stage is readonly.')
     disabled_statusbar = fields.Boolean(string='Is StatusBar Disabled', related='stage_id.is_statusbar_disabled', help='Utility field used to prevent statusbar usage.')
-    request_line_ids = fields.One2many('purchase.request.line', 'purchase_request_id', string='Purchase Request Lines')
+    request_line_ids = fields.One2many('purchase.request.line', 'purchase_request_id', string='Purchase Request Lines', tracking=True)
     date_request = fields.Date(string='Request Date', required=True, index=True, default=fields.Date.today, readonly=1)
     date_confirm = fields.Date(string='Confirmation Date', readonly=True, index=True)
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id.id)
