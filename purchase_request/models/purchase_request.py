@@ -63,7 +63,7 @@ class PurchaseRequest(models.Model):
     technical_stage_name = fields.Char(related='stage_id.technical_name', string='Technical Stage Name', store=True, help='Utility field used in UI.')
     readonly_stage = fields.Boolean(string='Is Fields Edition Forbidden', related='stage_id.is_readonly', help='Utility field used to prevent field edition if request stage is readonly.')
     disabled_statusbar = fields.Boolean(string='Is StatusBar Disabled', related='stage_id.is_statusbar_disabled', help='Utility field used to prevent statusbar usage.')
-    request_line_ids = fields.One2many('purchase.request.line', 'purchase_request_id', string='Purchase Request Lines')
+    request_line_ids = fields.One2many('purchase.request.line', 'purchase_request_id', string='Purchase Request Lines', tracking=True)
     date_request = fields.Date(string='Request Date', required=True, index=True, default=fields.Date.today, readonly=1)
     date_confirm = fields.Date(string='Confirmation Date', readonly=True, index=True)
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id.id)
@@ -79,6 +79,17 @@ class PurchaseRequest(models.Model):
     request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
                                              required=True, compute="_get_request_responsible")
     approve_visible = fields.Boolean(compute='get_approve_visible')
+    amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all')
+
+    @api.depends('request_line_ids')
+    def _amount_all(self):
+        for request in self:
+            amount_total=0
+            for line in request.request_line_ids:
+                amount_total += line.price_subtotal
+            request.update({
+                'amount_total': amount_total,
+            })
 
     @api.depends('user_id')
     def _get_request_responsible(self):
@@ -241,6 +252,15 @@ class PurchaseRequest(models.Model):
             request.stage_id = self.env.ref('purchase_request.purchase_request_stage_validate').id
             # Create purchase order for non available quantity
             request.button_convert()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Purchase Requests'),
+            'res_model': 'purchase.request',
+            'view_mode': 'kanban,tree,form',
+            'target': 'main',
+              }
+
 
     def button_approved(self):
         """ Request Manager approval """

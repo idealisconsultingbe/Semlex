@@ -14,7 +14,7 @@ class PurchaseOrder(models.Model):
         Create a stock picking from purchase request for deliver to user.  One by delivery date
         """
         self.env['stock.picking'].check_lines_compatibility(request.request_line_ids)
-        request_line_by_date = request.request_line_ids.mapped('date_expected')
+        request_line_by_date = set(request.request_line_ids.mapped('date_expected'))
         for date_expected in request_line_by_date :
             date_request_line = request.request_line_ids.filtered(lambda line: line.date_expected == date_expected)
             product_lines = date_request_line.filtered(lambda request_line: request_line.product_id)
@@ -48,8 +48,8 @@ class PurchaseOrder(models.Model):
             raise UserError(_('You cannot create a stock picking: at least one purchase request line is required.'))
         if any(line.technical_stage_name in ('cancelled', 'draft') for line in lines):
             raise UserError(_('You cannot create a stock picking: at least one purchase request line is in Draft, or Cancelled stage.'))
-        if any(line.picking_ids for line in lines):
-            raise UserError(_('You cannot create a stock picking: there is already an picking for at least one purchase request line.'))
+        # if any(line.purchase_request_id.picking_ids for line in lines):
+        #     raise UserError(_('You cannot create a stock picking: there is already an picking for at least one purchase request line.'))
         if len(lines.mapped('company_id')) > 1:
             raise UserError(_('You cannot create a stock picking: there are purchase request lines with different companies.'))
         if not lines.mapped('product_id'):
