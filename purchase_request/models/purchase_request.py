@@ -45,8 +45,8 @@ class PurchaseRequest(models.Model):
         """ get default stage id """
         return self.env['purchase.request.stage'].search([('name', '=', 'Draft')], order='sequence', limit=1).id
 
-    ref = fields.Char(string='Reference', index=True, default='New',copy=False)
-    request_type_id = fields.Many2one('purchase.request.type', 'Request type',required=True,copy=False,
+    ref = fields.Char(string='Reference', index=True, default='New', copy=False)
+    request_type_id = fields.Many2one('purchase.request.type', 'Request type', required=True, copy=False,
                                       default=_default_request_type)
                                       # default= lambda self: self.env.ref('purchase_request.purchase_request_type_internal'))
     user_id = fields.Many2one('res.users', string='Request Representative', index=True, tracking=True,
@@ -63,7 +63,7 @@ class PurchaseRequest(models.Model):
     technical_stage_name = fields.Char(related='stage_id.technical_name', string='Technical Stage Name', store=True, help='Utility field used in UI.')
     readonly_stage = fields.Boolean(string='Is Fields Edition Forbidden', related='stage_id.is_readonly', help='Utility field used to prevent field edition if request stage is readonly.')
     disabled_statusbar = fields.Boolean(string='Is StatusBar Disabled', related='stage_id.is_statusbar_disabled', help='Utility field used to prevent statusbar usage.')
-    request_line_ids = fields.One2many('purchase.request.line', 'purchase_request_id', string='Purchase Request Lines', tracking=True)
+    request_line_ids = fields.One2many('purchase.request.line', 'purchase_request_id', string='Purchase Request Lines')
     date_request = fields.Date(string='Request Date', required=True, index=True, default=fields.Date.today, readonly=1)
     date_confirm = fields.Date(string='Confirmation Date', readonly=True, index=True)
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id.id)
@@ -79,7 +79,7 @@ class PurchaseRequest(models.Model):
     request_responsible_id = fields.Many2one('res.users', string='Request Responsible', index=True, tracking=True,
                                              required=True, compute="_get_request_responsible")
     approve_visible = fields.Boolean(compute='get_approve_visible')
-    amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all')
+    amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all', tracking=True)
 
     @api.depends('request_line_ids')
     def _amount_all(self):
@@ -186,21 +186,21 @@ class PurchaseRequest(models.Model):
         res = super(PurchaseRequest, self).create(vals)
         return res
 
-    def write(self, vals):
-        """
-        Creators should not be able to change stage to another stage than 'Confirmed'. ir.rules prevent write if current stage
-        is different than 'Draft' but it is still possible to change the current stage for any other stage. This is not what is expected.
-        Creators can move from 'Draft' to 'Confirmed' and that's all.
-        """
-        if vals.get('stage_id'):
-            stage = self.env['purchase.request.stage'].browse(vals.get('stage_id'))
-            if stage.technical_name != 'confirmed':
-                allowed_groups = self.env['res.groups'].search([('category_id', '=', self.env.ref('base.module_category_operations_purchase').id)])
-                allowed_groups = allowed_groups - self.env.ref('purchase_request.purchase_request_group_user')
-                check_groups = any(group_id in allowed_groups for group_id in self.env.user.groups_id)
-                if not check_groups:
-                    raise UserError(_('You cannot move this request to {} stage (creators are only allowed to confirm draft requests.').format(stage.name))
-        return super(PurchaseRequest, self).write(vals)
+    # def write(self, vals):
+    #     """
+    #     Creators should not be able to change stage to another stage than 'Confirmed'. ir.rules prevent write if current stage
+    #     is different than 'Draft' but it is still possible to change the current stage for any other stage. This is not what is expected.
+    #     Creators can move from 'Draft' to 'Confirmed' and that's all.
+    #     """
+        # if vals.get('stage_id'):
+        #     stage = self.env['purchase.request.stage'].browse(vals.get('stage_id'))
+        #     if stage.technical_name != 'confirmed':
+        #         allowed_groups = self.env['res.groups'].search([('category_id', '=', self.env.ref('base.module_category_operations_purchase').id)])
+        #         allowed_groups = allowed_groups - self.env.ref('purchase_request.purchase_request_group_user')
+        #         check_groups = any(group_id in allowed_groups for group_id in self.env.user.groups_id)
+        #         if not check_groups:
+        #             raise UserError(_('You cannot move this request to {} stage (creators are only allowed to confirm draft requests.').format(stage.name))
+        # return super(PurchaseRequest, self).write(vals)
 
     def _create_seq(self):
         """ Create a new sequence """
