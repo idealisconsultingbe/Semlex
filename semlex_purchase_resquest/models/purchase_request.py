@@ -10,6 +10,15 @@ class PurchaseRequest(models.Model):
     user_technical_to_approve_ids = fields.Many2many('res.users', string='Technical Responsible to Approve',
                                                      compute='_compute_technical_to_approve',store=True)
 
+    def write(self, values):
+        if 'stage_id' in values :
+            stage = self.env['purchase.request.stage'].browse(values['stage_id'])
+            if stage.technical_name == 'draft' and self.request_line_ids:
+                #reset technical approval'
+                self.request_line_ids.write({"technical_approval": False})
+        return super(PurchaseRequest, self).write(values)
+
+
     @api.depends('request_line_ids.technical_approval','request_line_ids.technical_stage_name')
     def _compute_technical_to_approve(self):
         """Technical user who must yet approve request"""
