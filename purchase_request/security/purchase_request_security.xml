@@ -40,7 +40,7 @@
             <field name="perm_write" eval="0"/>
             <field name="perm_create" eval="0"/>
             <field name="perm_unlink" eval="0"/>
-            <field name="domain_force">[('user_id','=',user.id)]</field>
+           <field name="domain_force">[('user_id','=',user.id),('technical_stage_name','=','draft')]</field>
         </record>
 
 
@@ -52,7 +52,7 @@
             <field name="perm_write" eval="1"/>
             <field name="perm_create" eval="1"/>
             <field name="perm_unlink" eval="1"/>
-            <field name="domain_force">[('user_id','=',user.id),('technical_stage_name','=','draft')]</field>
+            <field name="domain_force">[('user_id','=',user.id)]</field>
         </record>
 
        <record id="purchase_request_line_write_rule_user" model="ir.rule">
