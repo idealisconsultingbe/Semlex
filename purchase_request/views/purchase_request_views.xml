@@ -156,7 +156,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="request_type_id"/>
+                            <field name="request_type_id" attrs="{'readonly': [('readonly_stage', '=', True)]}"/>
                             <field name="user_id" readonly="1" string="Representative"/>
                             <field name="owner_id" widget="res_partner_many2one" string="Owner" attrs="{'readonly': [('readonly_stage', '=', True)], 'invisible': [('technical_stage_name', 'in', ['draft', 'cancelled'])]}"/>
                             <field name="request_responsible_id"/>
