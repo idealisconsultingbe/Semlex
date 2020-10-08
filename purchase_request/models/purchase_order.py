@@ -24,6 +24,9 @@ class PurchaseOrder(models.Model):
         product_lines = lines.filtered(lambda request_line: request_line.product_id and request_line.partner_id
                                        and request_line.product_qty_to_order != 0)
         if product_lines:
+            # product_qty_to_order is reset when PR line is linked to an order
+            # to prevent this, we register all quantities before creating an order
+            product_lines_qty_to_order = {line.id: line.product_qty_to_order for line in product_lines}
             origins = set(product_lines.mapped('purchase_request_id.ref'))
             order = self.env['purchase.order'].search([('state', '=', 'draft'),
                                                        ('partner_id', '=', product_lines.mapped('partner_id').id),
@@ -47,7 +50,7 @@ class PurchaseOrder(models.Model):
                 vals = {
                     'name': line.name or line.product_id.name,
                     'order_id': order.id,
-                    'product_qty': line.product_qty_to_order,
+                    'product_qty': product_lines_qty_to_order.get(line.id, 0),
                     'product_id': line.product_id and line.product_id.id or False,
                     'product_uom': line.product_uom and line.product_uom.id or line.product_id.uom_po_id.id,
                     'price_unit': line.price_unit or 0.0,

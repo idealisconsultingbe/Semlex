@@ -21,14 +21,14 @@ class PurchaseRequestLine(models.Model):
 
     name = fields.Text(string='Description', tracking=True)
     sequence = fields.Integer(string='Sequence', default=10)
-    date_expected_str = fields.Char(string='Date expected in string', compute='_date_expected_to_string',store=True)
+    date_expected_str = fields.Char(string='Date expected in string', compute='_date_expected_to_string', store=True)
     date_expected = fields.Date(string='Expected Date', index=True, required=True, tracking=True, default=_default_expected_date, help='When request products should be received.')
     date_reminder = fields.Date(string='Reminder Date', compute='_compute_date_reminder', help='One week before expected date.')
     product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True, default="1.0", tracking=True)
     product_uom_qty = fields.Float(string='Total Quantity', compute='_compute_product_uom_qty', store=True, help='Product quantity according to specified unit of measure.')
     product_uom = fields.Many2one('uom.uom', string='Unit of Measure', domain="[('category_id', '=', product_uom_category_id)]", default=_default_product_uom)
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.category_id')
-    product_id = fields.Many2one('product.product', string='Product', domain=[('purchase_ok', '=', True)])
+    product_id = fields.Many2one('product.product', string='Product', domain=[('purchase_ok', '=', True)], tracking=True)
     product_type = fields.Selection(related='product_id.type', readonly=True)
     price_unit = fields.Float(string='Unit Price', required=True, digits='Product Price')
     purchase_request_id = fields.Many2one('purchase.request', string='Purchase Request', index=True, required=True, ondelete='cascade')
@@ -47,8 +47,9 @@ class PurchaseRequestLine(models.Model):
         ('line_note', 'Note')], default=False, help='Technical field for UX purpose.')
     product_available = fields.Float(related='product_id.free_qty')
     product_qty_to_order = fields.Float(string="Qty to order", compute='_compute_qty_to_order', inverse='_set_qty_to_order', store=True, copy=False)
-    price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal',tracking=True)
+    price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal', tracking=True)
     currency_id = fields.Many2one('res.currency', related='purchase_request_id.currency_id')
+    user_id = fields.Many2one('res.users', related='purchase_request_id.user_id')
 
     @api.depends('date_expected')
     def _date_expected_to_string(self):
@@ -63,15 +64,15 @@ class PurchaseRequestLine(models.Model):
     def _set_qty_to_order(self):
         return True
 
-    @api.depends('product_qty', 'product_id','order_id')
+    @api.depends('product_qty', 'product_id', 'order_id')
     def _compute_qty_to_order(self):
-        for line in self :
+        for line in self:
             # type po = order all quantity
             if line.purchase_request_id.request_type_id.operation_type == 'po':
                 line.product_qty_to_order = line.product_qty
             # type po_stock = order only not available quantity
             elif line.purchase_request_id.request_type_id.operation_type == 'po_stock':
-                line.product_qty_to_order = max(line.product_qty - line.product_available,0)
+                line.product_qty_to_order = max(line.product_qty - line.product_available, 0)
 
             # type so or line already purchase = order nothing
             if line.order_id or line.purchase_request_id.request_type_id.operation_type == 'so':
@@ -165,3 +166,41 @@ class PurchaseRequestLine(models.Model):
         """ Convert a purchase request line into a purchase order """
         for line in self:
             self.env['purchase.order'].action_create_purchase_order([line.id])
+
+    @api.model
+    def create(self, vals):
+        """
+        Overridden method
+        Post message in purchase request chatter after adding a new line
+        """
+        res = super(PurchaseRequestLine, self).create(vals)
+        if res.purchase_request_id:
+            res.purchase_request_id.message_post(body='New Request Line: <ul><li>{}</li></ul>'.format(res.product_id.display_name or res.name),
+                                                 subtype_id=self.env['ir.model.data'].xmlid_to_res_id('mail.mt_note'),
+                                                 type='comment')
+        return res
+
+    def write(self, vals):
+        """
+        Overridden method
+        Post message in purchase request chatter after:
+        - a change of product
+        - a change of description
+        """
+        tracking_fields = []
+        if 'product_id' in vals:
+            product = self.env['product.product'].browse(vals.get('product_id'))
+            tracking_fields.append((_('Product: '), self.product_id.display_name, product.display_name if product else ''))
+        if 'name' in vals:
+            name = vals.get('name')
+            tracking_fields.append((_('Description: '), self.name, name if name else ''))
+        if tracking_fields and self.purchase_request_id:
+            body = 'Request Line Updated: <ul>'
+            for field in tracking_fields:
+                body += '<li>{}{} <span class="fa fa-long-arrow-right" role="img" aria-label="Changed" title="Changed"/> {}</li>'.format(field[0], field[1], field[2])
+            body += '</u>'
+            self.purchase_request_id.message_post(
+                body=body,
+                subtype_id=self.env['ir.model.data'].xmlid_to_res_id('mail.mt_note'),
+                type="comment")
+        return super(PurchaseRequestLine, self).write(vals)

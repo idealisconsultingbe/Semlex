@@ -51,22 +51,28 @@
 			</xpath>
             <xpath expr="//button[@name='button_assign']" position="replace"></xpath>
             <xpath expr="//button[@name='button_draft']" position="replace">
-                <button name="button_draft" groups="purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', 'in', ('draft','waiting_technical'))]}" string="Set to Draft" type="object" />
+                <button name="button_draft" groups="purchase_request.purchase_request_group_user,purchase_request.purchase_request_group_manager,purchase_request.purchase_request_group_owner" attrs="{'invisible': [('technical_stage_name', 'in', ('draft','waiting_technical'))]}" string="Set to Draft" type="object" />
             </xpath>
         </field>
     </record>
 
     <!-- ACCESS FOR PURCHASE REQUEST MANAGER -->
-    <record id="semlex_purchase_request_manager_form" model="ir.ui.view">
-            <field name="name">semlex.purchase.request.manager.form</field>
-            <field name="model">purchase.request</field>
-            <field name="inherit_id" ref="semlex_purchase_resquest.semlex_purchase_request_view_form" />
-            <field name="groups_id" eval="[(6,0, [ref('purchase_request.purchase_request_group_manager')])]" />
-            <field name="arch" type="xml">
-                 <xpath expr="//page//field[@name='request_line_ids']//tree//field[@name='request_technical_id']" position="attributes">
-                    <attribute name="readonly">0</attribute>
-                 </xpath>
-            </field>
-    </record>
+<!--    <record id="semlex_purchase_request_manager_form" model="ir.ui.view">-->
+<!--            <field name="name">semlex.purchase.request.manager.form</field>-->
+<!--            <field name="model">purchase.request</field>-->
+<!--            <field name="inherit_id" ref="semlex_purchase_resquest.semlex_purchase_request_view_form" />-->
+<!--            <field name="groups_id" eval="[(6,0, [ref('purchase_request.purchase_request_group_manager')])]" />-->
+<!--            <field name="arch" type="xml">-->
+<!--                 <xpath expr="//page//field[@name='request_line_ids']//tree//field[@name='request_technical_id']" position="attributes">-->
+<!--                    <attribute name="readonly">0</attribute>-->
+<!--                 </xpath>-->
+<!--                <xpath expr="//field[@name='analytic_account_id']" position="attributes">-->
+<!--                    <attribute name="attrs">{'readonly': False}</attribute>-->
+<!--                </xpath>-->
+<!--                <xpath expr="//page//field[@name='request_line_ids']" position="attributes">-->
+<!--                    <attribute name="attrs">{'readonly': False}</attribute>-->
+<!--                </xpath>-->
+<!--            </field>-->
+<!--    </record>-->
 
 </odoo>
