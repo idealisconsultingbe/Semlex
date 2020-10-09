@@ -1,0 +1,4 @@
+[submodule "smartbiotech-project-addons"]
+	path = smartbiotech-project-addons
+	url = git@git.myidealis.be:smartbiotech/project-addons.git
+	branch = master
