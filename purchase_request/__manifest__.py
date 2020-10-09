@@ -10,7 +10,7 @@
     'website': "http://www.idealisconsulting.com",
     'category': 'Operations/Purchase',
     'version': '13.0.0.1',
-    'depends': ['hr', 'purchase', 'stock'],
+    'depends': ['hr', 'purchase', 'sale','stock'],
     'data': [
         'security/purchase_request_security.xml',
         'security/ir.model.access.csv',
